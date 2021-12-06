@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AudioWaveShow</string>
+    <string name="title_activity_shake">ShakeActivity</string>
+</resources>
