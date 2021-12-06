@@ -12,6 +12,15 @@ import android.util.Log;
 import com.tian.audio.wave.R;
 import com.tian.audio.wave.dialog.DemoAppUpgradeDialog;
 
+
+/**
+ *
+ * 1 判断 手机敲击
+ * 2 录制声音
+ * 3 声音文件分析
+ * https://blog.csdn.net/dahaohan/article/details/52883743
+ *
+ */
 public class ShakeActivity extends Activity implements SensorEventListener {
 
     private DemoAppUpgradeDialog appUpgradeDialog;
