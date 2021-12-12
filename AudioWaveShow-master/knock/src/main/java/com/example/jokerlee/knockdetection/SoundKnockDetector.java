@@ -12,6 +12,9 @@ import java.util.TimerTask;
 public class SoundKnockDetector {
 	/**
 	 * Triggers a volume event if the sound detected is the maximum volume possible on the device
+	 *
+	 * 如果检测到的声音是设备上可能的最大音量，则触发音量事件
+	 *
 	 */
 
 	//VOLUM STUFF

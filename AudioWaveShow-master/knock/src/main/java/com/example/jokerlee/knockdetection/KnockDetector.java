@@ -13,6 +13,11 @@ abstract public class KnockDetector {
 	/**
 	 * Makes sure that accelerometer event and sound event only triggers a knock event 
 	 * if and only if they happen at the same time or very close together in time
+	 *
+	 * *确保加速计事件和声音事件仅触发爆震事件
+	 * *当且仅当它们同时发生或在时间上非常接近时
+	 *
+	 *
 	 */
 	
 	private Context mContext;

@@ -8,6 +8,10 @@ import android.hardware.SensorManager;
 /**
  * Detects spikes in accelerometer data (only in z axis) and generates accelerometer events
  * the volatile spikeDetected boolean will be set when a spike is detected
+ *
+ * *检测加速计数据中的峰值（仅在z轴上），并生成加速计事件
+ * *检测到峰值时，将设置volatile spikeDetected布尔值
+ *
  * @author tor
  *
  */
