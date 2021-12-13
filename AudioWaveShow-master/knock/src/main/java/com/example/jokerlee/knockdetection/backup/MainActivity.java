@@ -2,7 +2,7 @@
  * 
  */
 
-package com.example.jokerlee.knockdetection;
+package com.example.jokerlee.knockdetection.backup;
 
 import android.content.Intent;
 import android.media.AudioManager;
@@ -14,13 +14,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
+import com.example.jokerlee.knockdetection.KnockDetector;
+import com.example.jokerlee.knockdetection.R;
 
 
 public class MainActivity extends AppCompatActivity {
 
 	//The abstract class KnockDetector requires the implementation of void knockDetected(int) method
-	private NewKnockDetector mKnockDetector;
+	private KnockDetector mKnockDetector;
 
     private TextView tips;
 
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
         tips = (TextView) findViewById(R.id.tip_text);
 
-		mKnockDetector = new NewKnockDetector(this){
+		mKnockDetector = new KnockDetector(this){
             @Override
             public void knockDetected(int knockCount) {
                 switch (knockCount){
@@ -71,8 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
 	public void onResume(){
 		super.onResume();
-		String path = MainActivity.this.getExternalFilesDir("")+"/audio";
-		mKnockDetector.startDetecting(path);
+		mKnockDetector.startDetecting();
 	}
 
     @Override
@@ -88,8 +88,7 @@ public class MainActivity extends AppCompatActivity {
             button.setText("Start Detecting");
             tips.setText("Pause knock event detecting.");
         } else {
-            String path = MainActivity.this.getExternalFilesDir("")+"/audio";
-            mKnockDetector.startDetecting(path);
+            mKnockDetector.startDetecting();
             button.setText("Stop Detecting");
             tips.setText("Detecting knock event, now.");
         }

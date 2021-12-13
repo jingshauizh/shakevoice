@@ -13,6 +13,10 @@
         android:theme="@style/AppTheme">
 
         <activity android:name=".MainActivity">
+
+        </activity>
+
+        <activity android:name=".AudioRecordActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"></action>
                 <category android:name="android.intent.category.LAUNCHER"></category>
