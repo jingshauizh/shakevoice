@@ -27,7 +27,7 @@ abstract public class NewKnockDetector {
 	private int period = MaxTimeBetweenEvents;
 
 	private NewAccelSpikeDetector mAccelSpikeDetector;
-	private NewSoundKnockDetector mSoundKnockDetector = new NewSoundKnockDetector();
+	private AudioSoundKnockDetector mSoundKnockDetector ;
 	private NewPatternRecognizer mPatt = new NewPatternRecognizer(this);
 
 	public abstract void knockDetected(int knockCount);
@@ -40,6 +40,7 @@ abstract public class NewKnockDetector {
 
 	public NewKnockDetector(Context context){
 		mContext = context;
+		mSoundKnockDetector = new AudioSoundKnockDetector(context);
 		mAccelSpikeDetector = new NewAccelSpikeDetector(
 				(SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE));
 	}
@@ -60,7 +61,7 @@ abstract public class NewKnockDetector {
 	public void startDetecting(String path){
 		if( mTimer != null ) return;
 		startEventDetectTimer(); // start the timer task first.
-		mSoundKnockDetector.vol_start(path);
+		mSoundKnockDetector.vol_start_public(path);
 		mAccelSpikeDetector.resumeAccSensing();
 	}
 	
