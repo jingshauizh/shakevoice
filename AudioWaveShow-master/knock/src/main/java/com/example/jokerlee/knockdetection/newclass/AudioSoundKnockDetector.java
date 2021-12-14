@@ -137,7 +137,7 @@ public class AudioSoundKnockDetector {
             long currentRecorderTime = System.currentTimeMillis();
             //大于3秒算成功，在主线程更新UI
              long second = currentRecorderTime - startRecorderTime;
-            while (mIsRecording && (second < 2000)) {
+            while (mIsRecording && (second < 1000)) {
                 //只要还在录音就一直读取
                 int read = mAudioRecord.read(mBuffer, 0, BUFFER_SIZE);
                 if (read <= 0) {
