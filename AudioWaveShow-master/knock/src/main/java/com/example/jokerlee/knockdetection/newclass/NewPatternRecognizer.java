@@ -2,8 +2,6 @@ package com.example.jokerlee.knockdetection.newclass;
 
 import android.util.Log;
 
-import com.example.jokerlee.knockdetection.KnockDetector;
-
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;

@@ -11,14 +11,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
+import com.example.jokerlee.knockdetection.widget.VisualizerView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class MainAudioRecordActivity extends AppCompatActivity {
+public class MainAudioRecordActivity extends BaseActivity {
     private Button bt_stream_recorder;
     private TextView tv_stream_msg;
     private ExecutorService mExecutorService;
@@ -48,8 +49,10 @@ public class MainAudioRecordActivity extends AppCompatActivity {
     private NewKnockDetector mKnockDetector;
 
     private String audioFilePath = "";
+
+    private VisualizerView mVisualizerView;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_audio_record);
         setTitle("字节流录音");
@@ -62,26 +65,6 @@ public class MainAudioRecordActivity extends AppCompatActivity {
             @Override
             public void knockDetected(int knockCount) {
                 switch (knockCount){
-                    case 2:
-                        Log.d("media","next song");
-                        MainAudioRecordActivity.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainAudioRecordActivity.this, "Detect knocked twice.",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        break;
-                    case 3:
-                        Log.d("media","pause/play");
-                        MainAudioRecordActivity.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainAudioRecordActivity.this, "Detect knocked three times.",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        break;
                     default:
                         Toast.makeText(MainAudioRecordActivity.this,"default",Toast.LENGTH_SHORT).show();
                         break;
@@ -103,7 +86,8 @@ public class MainAudioRecordActivity extends AppCompatActivity {
 
     public void recorderaudio(View view) {
         if (mIsRecording) {
-            bt_stream_recorder.setText("开始录音");
+
+            bt_stream_recorder.setText("停止录音");
             //在开始录音中如果这个值没有变false，则一直进行，当再次点击变false时，录音才停止
             mIsRecording = false;
             audioFilePath = MainAudioRecordActivity.this.getExternalFilesDir("")+"/audio";
@@ -112,7 +96,7 @@ public class MainAudioRecordActivity extends AppCompatActivity {
 
         } else {
 
-            bt_stream_recorder.setText("停止录音");
+            bt_stream_recorder.setText("开始录音");
             //提交后台任务，执行录音逻辑
             mIsRecording = true;
             mKnockDetector.stopDetecting();
@@ -266,16 +250,25 @@ public class MainAudioRecordActivity extends AppCompatActivity {
      * @param view
      */
     public void player(View view) {
+        Log.d("audio","player audioFilePath="+audioFilePath);
+        Log.d("audio","player mIsPlaying="+mIsPlaying);
+        File file = new File(audioFilePath);
+        if(file.exists()){
+            Toast.makeText(MainAudioRecordActivity.this,"audioFilePath="+audioFilePath,Toast.LENGTH_LONG).show();
+        }
+        else{
+            Toast.makeText(MainAudioRecordActivity.this,"录制失败 文件不存在",Toast.LENGTH_LONG).show();
+        }
 
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
                 if (!mIsPlaying) {
                     Log.i("Tag8", "go here");
-                    mIsPlaying = true;
                     Log.d("audio","player audioFilePath="+audioFilePath);
                     mAudioRecordFile = new File(audioFilePath);
                     if(mAudioRecordFile.exists()){
+                        mIsPlaying = true;
                         doPlay(mAudioRecordFile);
                     }
 

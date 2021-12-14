@@ -46,7 +46,7 @@ public class AudioSoundKnockDetector {
     private File mAudioRecordFile;
     private byte[] mBuffer;
     //buffer值不能太大，避免OOM
-    private static final int BUFFER_SIZE = 20*1024;
+    private static final int BUFFER_SIZE = 2048;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
@@ -105,7 +105,7 @@ public class AudioSoundKnockDetector {
             //记录开始录音时间
             mIsRecording = true;
             startRecorderTime = System.currentTimeMillis();
-
+            Log.d("v9","startRecorderTime="+startRecorderTime);
             //创建录音文件
             mAudioRecordFile = new File(path);
             Log.d("media", "vol_start run voicefile=" + mAudioRecordFile.getAbsolutePath());
@@ -137,7 +137,7 @@ public class AudioSoundKnockDetector {
             long currentRecorderTime = System.currentTimeMillis();
             //大于3秒算成功，在主线程更新UI
              long second = currentRecorderTime - startRecorderTime;
-            while (mIsRecording && (second < 1000)) {
+            while (mIsRecording && (second < 2000)) {
                 //只要还在录音就一直读取
                 int read = mAudioRecord.read(mBuffer, 0, BUFFER_SIZE);
                 if (read <= 0) {

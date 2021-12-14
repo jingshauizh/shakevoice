@@ -2,6 +2,7 @@ package com.example.jokerlee.knockdetection.newclass;
 
 import android.content.Context;
 import android.hardware.SensorManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.Timer;
@@ -32,6 +33,8 @@ abstract public class NewKnockDetector {
 
 	public abstract void knockDetected(int knockCount);
 
+	private String filePath = "";
+
 	private enum EventGenState_t {
 		NoneSet,
 		VolumSet,
@@ -61,7 +64,8 @@ abstract public class NewKnockDetector {
 	public void startDetecting(String path){
 		if( mTimer != null ) return;
 		startEventDetectTimer(); // start the timer task first.
-		mSoundKnockDetector.vol_start_public(path);
+		//mSoundKnockDetector.vol_start_public(path);
+		filePath = path;
 		mAccelSpikeDetector.resumeAccSensing();
 	}
 	
@@ -71,70 +75,17 @@ abstract public class NewKnockDetector {
 
 		eventGen = new TimerTask(){
 
-			int nrTicks = 0;
-
-			EventGenState_t state = EventGenState_t.NoneSet;
-
 			@Override
 			public void run() {
-
-				switch(state){
-				//None of the bools set
-				case NoneSet:
-					if		( mSoundKnockDetector.spikeDetected && !mAccelSpikeDetector.spikeDetected) state = EventGenState_t.VolumSet;
-					else if	(!mSoundKnockDetector.spikeDetected &&  mAccelSpikeDetector.spikeDetected) state = EventGenState_t.AccelSet; 
-					else if	( mSoundKnockDetector.spikeDetected &&  mAccelSpikeDetector.spikeDetected){
-
-						mSoundKnockDetector.spikeDetected = false;
+				//监测到重力加速有效 则进行 声音录制
+				if (mAccelSpikeDetector.spikeDetected) {
+					if (!TextUtils.isEmpty(filePath)) {
+						mSoundKnockDetector.vol_start_public(filePath);
 						mAccelSpikeDetector.spikeDetected = false;
-						state =  EventGenState_t.NoneSet;
-						//generate knock event
-						mPatt.knockEvent();
 					}
-					Log.d("media","NoneSet run state="+state);
-					nrTicks = 0;
-					break;
-					//volum set
-				case VolumSet:
-					if(mAccelSpikeDetector.spikeDetected){
-						mSoundKnockDetector.spikeDetected = false;
-						mAccelSpikeDetector.spikeDetected = false;
-						state =  EventGenState_t.NoneSet;
-						//generate knock event
-						mPatt.knockEvent();
-						break;
-					}else{
-						nrTicks+=1;
-						if(nrTicks > period){
-							nrTicks = 0;
-							mSoundKnockDetector.spikeDetected = false;
-							state = EventGenState_t.NoneSet;
-						}
-					}
-					Log.d("media","VolumSet run state="+state);
-					break;
 
-					//accsel set
-				case AccelSet:
-					//if(mSoundKnockDetector.spikeDetected){
-					if(true){
-						mSoundKnockDetector.spikeDetected = false;
-						mAccelSpikeDetector.spikeDetected = false;
-						state =  EventGenState_t.NoneSet;
-						//generate knock event
-						mPatt.knockEvent();
-						break;
-					}else{
-						nrTicks+=1;
-						if(nrTicks > period){
-							nrTicks = 0;
-							mAccelSpikeDetector.spikeDetected = false;
-							state = EventGenState_t.NoneSet;
-						}
-					}
-					Log.d("media","AccelSet run state="+state);
-					break;
 				}
+
 			}
 		};
 		mTimer.scheduleAtFixedRate(eventGen, 0, period); //start after 0 ms

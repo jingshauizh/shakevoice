@@ -4,6 +4,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 /**
  * Detects spikes in accelerometer data (only in z axis) and generates accelerometer events
@@ -40,6 +41,14 @@ public class NewAccelSpikeDetector implements SensorEventListener{
 	private float currentYVal = 0;
 	private float diffY = 0;
 
+
+	private long lastUpdate = 0;
+	private float last_x, last_y, last_z;
+	private static final int SHAKE_THRESHOLD = 200;
+	private int bb = 0;
+
+	private SensorManager senSensorManager;
+	private Sensor senAccelerometer;
 	NewAccelSpikeDetector(SensorManager sm){
 		mSensorManager = sm;
 	}
@@ -49,31 +58,57 @@ public class NewAccelSpikeDetector implements SensorEventListener{
 	}
 
 	public void resumeAccSensing(){
-		mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), 1000000/updateFrequency);
+		//mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), 1000000/updateFrequency);
+		senAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		mSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	public void onSensorChanged(SensorEvent event) {
-		prevXVal = currentXVal;
-		currentXVal = abs(event.values[0]); // X-axis
-		diffX = currentXVal - prevXVal;
-		
-		prevYVal = currentYVal;
-		currentYVal = abs(event.values[1]); // Y-axis
-		diffY = currentYVal - prevYVal;		
-		
-		prevZVal = currentZVal;
-		currentZVal = abs(event.values[2]); // Z-axis
-		diffZ = currentZVal - prevZVal;
+//		prevXVal = currentXVal;
+//		currentXVal = abs(event.values[0]); // X-axis
+//		diffX = currentXVal - prevXVal;
+//
+//		prevYVal = currentYVal;
+//		currentYVal = abs(event.values[1]); // Y-axis
+//		diffY = currentYVal - prevYVal;
+//
+//		prevZVal = currentZVal;
+//		currentZVal = abs(event.values[2]); // Z-axis
+//		diffZ = currentZVal - prevZVal;
+//
+//		//Z force must be above some limit, the other forces below some limit to filter out shaking motions
+//		if (currentZVal > prevZVal && diffZ > thresholdZ && diffX < threshholdX && diffY < threshholdY){
+//			accTapEvent();
+//		}
 
-		//Z force must be above some limit, the other forces below some limit to filter out shaking motions
-		if (currentZVal > prevZVal && diffZ > thresholdZ && diffX < threshholdX && diffY < threshholdY){
-			accTapEvent();
+		Sensor mySensor = event.sensor;
+		if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			float x = event.values[0];
+			float y = event.values[1];
+			float z = event.values[2];
+
+			long curTime = System.currentTimeMillis();
+
+			if ((curTime - lastUpdate) > 100) {
+				long diffTime = (curTime - lastUpdate);
+				lastUpdate = curTime;
+				float speed = Math.abs(x + y + z - last_x - last_y - last_z)/ diffTime * 10000;
+				if (speed > SHAKE_THRESHOLD) {
+					Log.d("v9","curTime="+curTime);
+					accTapEvent();
+				}
+
+				last_x = x;
+				last_y = y;
+				last_z = z;
+			}
 		}
 
 	}
 
 	private void accTapEvent(){
 		spikeDetected = true;
+		stopAccSensing();
 	}
 
 	private float abs(float f) {

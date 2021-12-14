@@ -14,7 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.jokerlee.knockdetection.KnockDetector;
+import com.example.jokerlee.knockdetection.back2.KnockDetector;
 import com.example.jokerlee.knockdetection.R;
 
 

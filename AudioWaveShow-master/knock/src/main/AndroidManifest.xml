@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AudioRecordActivity">
+        <activity android:name=".back2.AudioRecordActivity">
 
         </activity>
 

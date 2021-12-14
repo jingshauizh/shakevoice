@@ -1,4 +1,4 @@
-package com.example.jokerlee.knockdetection;
+package com.example.jokerlee.knockdetection.back2;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +16,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.jokerlee.knockdetection.R;
 
 import java.io.File;
 import java.io.FileInputStream;
