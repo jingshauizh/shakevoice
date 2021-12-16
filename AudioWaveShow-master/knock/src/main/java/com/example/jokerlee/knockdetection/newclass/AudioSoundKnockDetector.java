@@ -194,21 +194,21 @@ public class AudioSoundKnockDetector {
                 String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
                 //Log.v(TAG, resultFFTData);
                 strBuid.append(resultFFTData + "\n") ;
-                addsub += Math.abs(audioDataDoubles[i]);
+                addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
 
             double avgFFT = addsub/BUFFER_SIZE;//平均值
-            resultFFTBuilder.append("\n avgFFT="+avgFFT );
+            resultFFTBuilder.append("\n 平均值 avgFFT="+avgFFT );
             Log.i("audio", "avgFFT="+avgFFT );
             double checkValur = avgFFT*3;//3倍平均值
-            resultFFTBuilder.append("\n checkValur="+checkValur );
+            resultFFTBuilder.append("\n 3倍平均值 checkValur="+checkValur );
             double findValue = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
-
+                //第一个大于3倍平均值
                 if(Math.abs(audioDataDoubles[i]) > checkValur) {
                     findValue = audioDataDoubles[i];
-                    Log.i("audio", "findValue="+findValue + "  i="+i);
-                    resultFFTBuilder.append("\n findValue="+findValue + "  i="+i);
+                    Log.i("audio", "找到的第一个大于3被平均值 findValue="+findValue + "  i="+i);
+                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue="+findValue + "  i="+i);
                     break;
                 }
             }
