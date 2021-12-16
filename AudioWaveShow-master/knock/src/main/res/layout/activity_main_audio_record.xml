@@ -7,65 +7,101 @@
     android:orientation="vertical"
     android:padding="2dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="3"
-        android:gravity="center"
-        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/bt_stream_recorder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="#50000000"
-            android:onClick="recorderaudio"
-            android:padding="10dp"
-            android:text="开始录音"
-            android:textColor="#fff"
-            android:textSize="24sp" />
+        android:scrollbars="vertical">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="#50000000"
-            android:onClick="player"
-            android:padding="10dp"
-            android:text="播   放"
-            android:textColor="#fff"
-            android:textSize="24sp" />
-
-        <com.example.jokerlee.knockdetection.widget.VisualizerView
-            android:id="@+id/visualizerView"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp"></com.example.jokerlee.knockdetection.widget.VisualizerView>
-
-        <TextView
-            android:id="@+id/tv_stream_msg"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="7"
-            android:padding="10dp"
-            android:text="录音结果"
-            android:textSize="24sp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/media_record"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#50000000"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
             android:gravity="center"
-            android:onClick="toMediaRecord"
-            android:padding="10dp"
-            android:text="切换到MediaRecord录制音频"
-            android:textSize="24sp"
-            android:visibility="gone" />
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/bt_stream_recorder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:background="#50000000"
+                android:onClick="recorderaudio"
+                android:padding="10dp"
+                android:text="开始录音"
+                android:textColor="#fff"
+                android:textSize="24sp" />
 
+            <Button
+                android:id="@+id/btn_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/bt_stream_recorder"
+                android:layout_centerHorizontal="true"
+                android:layout_margin="10dp"
+                android:background="#50000000"
+                android:onClick="player"
+                android:padding="10dp"
+                android:text="播   放"
+                android:textColor="#fff"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/btn_show_result"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/btn_play"
+                android:layout_margin="10dp"
+                android:background="#50000000"
+                android:onClick="showResult"
+                android:padding="10dp"
+                android:text="显示 计算结果"
+                android:textColor="#fff"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/media_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#50000000"
+                android:layout_below="@+id/btn_show_result"
+                android:onClick="toMediaRecord"
+                android:padding="10dp"
+                android:text=""
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btn_show"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/media_record"
+                android:layout_margin="10dp"
+                android:background="#50000000"
+                android:onClick="show"
+                android:padding="10dp"
+                android:text="显示 FFT数据"
+                android:textColor="#fff"
+                android:textSize="24sp" />
+
+
+            <TextView
+                android:id="@+id/tv_stream_msg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/btn_show"
+                android:layout_weight="7"
+                android:padding="10dp"
+                android:text=""
+                android:textSize="12sp"
+                android:visibility="visible" />
+
+
+
+
+        </RelativeLayout>
+    </ScrollView>
 
 </LinearLayout>

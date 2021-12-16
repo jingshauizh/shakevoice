@@ -122,4 +122,7 @@ public class NewAccelSpikeDetector implements SensorEventListener{
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
 	}
+
+
+
 }

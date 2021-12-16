@@ -6,11 +6,10 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,7 +18,7 @@ import android.widget.Toast;
 
 import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
-import com.example.jokerlee.knockdetection.widget.VisualizerView;
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,6 +31,7 @@ import java.util.concurrent.Executors;
 public class MainAudioRecordActivity extends BaseActivity {
     private Button bt_stream_recorder;
     private TextView tv_stream_msg;
+    private TextView tv_fft_msg;
     private ExecutorService mExecutorService;
     private long startRecorderTime, stopRecorderTime;
     private volatile boolean mIsRecording = true;
@@ -39,8 +39,9 @@ public class MainAudioRecordActivity extends BaseActivity {
     private FileOutputStream mFileOutputStream;
     private File mAudioRecordFile;
     private byte[] mBuffer;
+    private byte[] backmBuffer;
     //buffer值不能太大，避免OOM
-    private static final int BUFFER_SIZE = 2048;
+    private static final int BUFFER_SIZE = 4096;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
@@ -50,7 +51,7 @@ public class MainAudioRecordActivity extends BaseActivity {
 
     private String audioFilePath = "";
 
-    private VisualizerView mVisualizerView;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +60,7 @@ public class MainAudioRecordActivity extends BaseActivity {
         initView();
         mExecutorService = Executors.newSingleThreadExecutor();
         mBuffer = new byte[BUFFER_SIZE];
+        backmBuffer = new byte[BUFFER_SIZE];
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         mKnockDetector = new NewKnockDetector(this){
@@ -70,6 +72,11 @@ public class MainAudioRecordActivity extends BaseActivity {
                         break;
                 }
             }
+
+            @Override
+            public void knockResult(String result) {
+
+            }
         };
 //
     }
@@ -77,6 +84,7 @@ public class MainAudioRecordActivity extends BaseActivity {
     private void initView() {
         bt_stream_recorder = (Button) findViewById(R.id.bt_stream_recorder);
         tv_stream_msg = (TextView) findViewById(R.id.tv_stream_msg);
+        tv_fft_msg = (TextView) findViewById(R.id.media_record);
 
     }
 
@@ -107,89 +115,11 @@ public class MainAudioRecordActivity extends BaseActivity {
 
     }
 
-    /**
-     * 开始录音
-     */
-    private void startRecorder() {
-        // realeseRecorder();
-        if (!dostart()) recorderFail();
-
-    }
 
 
-    /**
-     * 停止录音
-     */
-    private void stopRecorder() {
-        mIsRecording = false;
-        if (!doStop()) {
-            recorderFail();
-        }
-
-    }
-
-    /**
-     * 开始录音
-     *
-     * @return
-     */
-    private boolean dostart() {
-        try {
-            //记录开始录音时间
-            startRecorderTime = System.currentTimeMillis();
-
-            //创建录音文件
-            mAudioRecordFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
-                    "/recorderdemo/" + System.currentTimeMillis() + ".pcm");
-            if (!mAudioRecordFile.getParentFile().exists()) {
-                mAudioRecordFile.getParentFile().mkdirs();
-                mAudioRecordFile.createNewFile();
-            }
-
-            //创建文件输出流
-            mFileOutputStream = new FileOutputStream(mAudioRecordFile);
-            //配置AudioRecord
-            int audioSource = MediaRecorder.AudioSource.MIC;
-            //所有android系统都支持
-            int sampleRate = 44100;
-            //单声道输入
-            int channelConfig = AudioFormat.CHANNEL_IN_MONO;
-            //PCM_16是所有android系统都支持的
-            int autioFormat = AudioFormat.ENCODING_PCM_16BIT;
-            //计算AudioRecord内部buffer最小
-            int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, autioFormat);
-            //buffer不能小于最低要求，也不能小于我们每次我们读取的大小。
-            mAudioRecord = new AudioRecord(audioSource, sampleRate, channelConfig, autioFormat, Math.max(minBufferSize, BUFFER_SIZE));
 
 
-            //开始录音
-            mAudioRecord.startRecording();
 
-            //循环读取数据，写入输出流中
-            while (mIsRecording) {
-                //只要还在录音就一直读取
-                int read = mAudioRecord.read(mBuffer, 0, BUFFER_SIZE);
-                if (read <= 0) {
-                    return false;
-                } else {
-                    mFileOutputStream.write(mBuffer, 0, read);
-                }
-
-            }
-
-            //退出循环，停止录音，释放资源
-            stopRecorder();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            if (mAudioRecord != null) {
-                mAudioRecord.release();
-            }
-        }
-        return true;
-    }
 
     /**
      * 录制失败
@@ -214,35 +144,7 @@ public class MainAudioRecordActivity extends BaseActivity {
         mAudioRecord.release();
     }
 
-    /**
-     * 停止录音
-     * @return
-     */
-    private boolean doStop() {
-        //停止录音，关闭文件输出流
-        mAudioRecord.stop();
-        mAudioRecord.release();
-        mAudioRecord = null;
-        Log.i("Tag8", "go here");
-        //记录结束时间，统计录音时长
-        stopRecorderTime = System.currentTimeMillis();
-        //大于3秒算成功，在主线程更新UI
-        final int send = (int) (stopRecorderTime - startRecorderTime) / 1000;
-        if (send > 3) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    tv_stream_msg.setText("录音成功：" + send + "秒");
-                    bt_stream_recorder.setText("开始录音");
-                    Log.i("Tag8", "go there");
-                }
-            });
-        } else {
-            recorderFail();
-            return false;
-        }
-        return true;
-    }
+
 
     /**
      * 播放声音
@@ -260,6 +162,8 @@ public class MainAudioRecordActivity extends BaseActivity {
             Toast.makeText(MainAudioRecordActivity.this,"录制失败 文件不存在",Toast.LENGTH_LONG).show();
         }
 
+//        String fftResult = mKnockDetector.getFftResult();
+//        tv_stream_msg.setText(fftResult);
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -278,6 +182,29 @@ public class MainAudioRecordActivity extends BaseActivity {
         });
     }
 
+    public void show(View view) {
+
+        String fftResult = mKnockDetector.getFftResult();
+        tv_stream_msg.setText(fftResult);
+
+    }
+
+
+    public void showResult(View view) {
+
+        String fftResult = mKnockDetector.getResultFFTBuilder();
+        if(!TextUtils.isEmpty(fftResult)){
+            tv_fft_msg.setVisibility(View.VISIBLE);
+            tv_fft_msg.setText(fftResult);
+        }
+        else{
+            tv_fft_msg.setVisibility(View.GONE);
+            tv_fft_msg.setText("");
+        }
+
+
+    }
+
     /**
      * 播放音频文件
      *
@@ -290,7 +217,7 @@ public class MainAudioRecordActivity extends BaseActivity {
             //音乐类型，扬声器播放
             int streamType = AudioManager.STREAM_MUSIC;
             //录音时采用的采样频率，所以播放时同样的采样频率
-            int sampleRate = 44100;
+            int sampleRate = 10240;
             //单声道，和录音时设置的一样
             int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
             //录音时使用16bit，所以播放时同样采用该方式
@@ -314,10 +241,12 @@ public class MainAudioRecordActivity extends BaseActivity {
                 //循环读数据，写到播放器去播放
                 int read;
                 //只要没读完，循环播放
+
                 while ((read = inputStream.read(mBuffer)) > 0) {
                     Log.i("Tag8", "read:" + read);
                     int ret = audioTrack.write(mBuffer, 0, read);
                     //检查write的返回值，处理错误
+
                     switch (ret) {
                         case AudioTrack.ERROR_INVALID_OPERATION:
                         case AudioTrack.ERROR_BAD_VALUE:
@@ -327,6 +256,7 @@ public class MainAudioRecordActivity extends BaseActivity {
                         default:
                             break;
                     }
+
                 }
                 //播放结束
                 audioTrack.stop();

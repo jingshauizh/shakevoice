@@ -33,6 +33,8 @@ abstract public class NewKnockDetector {
 
 	public abstract void knockDetected(int knockCount);
 
+	public abstract void knockResult(String result);
+
 	private String filePath = "";
 
 	private enum EventGenState_t {
@@ -46,6 +48,10 @@ abstract public class NewKnockDetector {
 		mSoundKnockDetector = new AudioSoundKnockDetector(context);
 		mAccelSpikeDetector = new NewAccelSpikeDetector(
 				(SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE));
+	}
+
+	public byte[] getBackmBuffer() {
+		return mSoundKnockDetector.getBackmBuffer();
 	}
 
 	//Stop detecting.
@@ -97,6 +103,15 @@ abstract public class NewKnockDetector {
 			mTimer.purge();
 			mTimer = null;
 		}
+	}
+
+	public String getFftResult() {
+		return mSoundKnockDetector.getFftResult();
+	}
+
+
+	public String getResultFFTBuilder() {
+		return mSoundKnockDetector.getResultFFTBuilder();
 	}
 
 }
