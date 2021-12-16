@@ -36,6 +36,8 @@ public class AudioSoundKnockDetector {
      *
      * https://stackoverflow.com/questions/7651633/using-fft-in-android
      *
+     * https://introcs.cs.princeton.edu/java/97data/FFT.java.html
+     *
      */
 
     //VOLUM STUFF
@@ -191,9 +193,9 @@ public class AudioSoundKnockDetector {
             //求 FFT 的平均值
             double addsub = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
-                String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
-                //Log.v(TAG, resultFFTData);
-                strBuid.append(resultFFTData + "\n") ;
+                //String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
+                String resultFFTData = backmBuffer[i] +" ";
+                strBuid.append(resultFFTData) ;
                 addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
 
