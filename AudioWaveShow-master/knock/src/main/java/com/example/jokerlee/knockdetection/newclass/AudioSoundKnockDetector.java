@@ -177,7 +177,6 @@ public class AudioSoundKnockDetector {
             }
 
 
-
             //进行数据 FFT 处理
             //https://stackoverflow.com/questions/7651633/using-fft-in-android
             DoubleFFT_1D fft = new DoubleFFT_1D(BUFFER_SIZE-1);
@@ -198,7 +197,10 @@ public class AudioSoundKnockDetector {
                 strBuid.append(resultFFTData) ;
                 addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
-
+            String tempFile = path.replace(".pcm","_find.pcm");
+            File tempFileFile = new File(tempFile);
+            FileOutputStream tempmFileOutputStream = new FileOutputStream(tempFileFile);
+            tempmFileOutputStream.write(strBuid.toString().getBytes());
             double avgFFT = addsub/BUFFER_SIZE;//平均值
             resultFFTBuilder.append("\n 平均值 avgFFT="+avgFFT );
             Log.i("audio", "avgFFT="+avgFFT );

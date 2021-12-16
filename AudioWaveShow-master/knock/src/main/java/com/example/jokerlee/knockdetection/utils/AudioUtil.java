@@ -16,7 +16,7 @@ public class AudioUtil {
             readLength = buffer.length;
         }
         for (int i = 0; i < readLength; i++) {
-            v += buffer[i] * buffer[i];
+            v += Math.abs(buffer[i]) * Math.abs(buffer[i]);
         }
         return v;
     }
