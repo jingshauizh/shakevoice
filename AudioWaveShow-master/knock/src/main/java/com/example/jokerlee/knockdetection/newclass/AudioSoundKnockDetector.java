@@ -12,6 +12,8 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
+import com.example.jokerlee.knockdetection.utils.Complex;
+import com.example.jokerlee.knockdetection.utils.FFT;
 
 import org.jtransforms.fft.DoubleFFT_1D;
 
@@ -19,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -31,13 +35,12 @@ public class AudioSoundKnockDetector {
      * <p>
      * 如果检测到的声音是设备上可能的最大音量，则触发音量事件
      * https://sites.google.com/site/piotrwendykier/software/jtransforms
-     *
+     * <p>
      * https://stackoverflow.com/questions/9272232/fft-library-in-android-sdk
-     *
+     * <p>
      * https://stackoverflow.com/questions/7651633/using-fft-in-android
-     *
+     * <p>
      * https://introcs.cs.princeton.edu/java/97data/FFT.java.html
-     *
      */
 
     //VOLUM STUFF
@@ -65,7 +68,7 @@ public class AudioSoundKnockDetector {
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
     private Context mContext;
-    private StringBuilder resultFFTBuilder ;
+    private StringBuilder resultFFTBuilder;
 
     public AudioSoundKnockDetector(Context context) {
         mContext = context;
@@ -104,6 +107,7 @@ public class AudioSoundKnockDetector {
             mTimer = null;
         }
     }
+
     public void vol_start_public(final String filepath) {
 
         mExecutorService.submit(new Runnable() {
@@ -122,7 +126,7 @@ public class AudioSoundKnockDetector {
             mIsRecording = true;
             resultFFTBuilder = new StringBuilder();
             startRecorderTime = System.currentTimeMillis();
-            Log.d("v9","startRecorderTime="+startRecorderTime);
+            Log.d("v9", "startRecorderTime=" + startRecorderTime);
             //创建录音文件
             mAudioRecordFile = new File(path);
             Log.d("media", "vol_start run voicefile=" + mAudioRecordFile.getAbsolutePath());
@@ -153,13 +157,15 @@ public class AudioSoundKnockDetector {
             //循环读取数据，写入输出流中
             long currentRecorderTime = System.currentTimeMillis();
             //大于3秒算成功，在主线程更新UI
-             long second = currentRecorderTime - startRecorderTime;
+            long second = currentRecorderTime - startRecorderTime;
             long result = 1;
+            int count = 0;
+            int findcount = 0;
             while (mIsRecording && (second < 1000)) {
                 //只要还在录音就一直读取
                 int read = mAudioRecord.read(mBuffer, 0, BUFFER_SIZE);
                 if (read <= 0) {
-                    return ;
+                    return;
                 } else {
                     mFileOutputStream.write(mBuffer, 0, read);
                 }
@@ -168,51 +174,73 @@ public class AudioSoundKnockDetector {
                 second = currentRecorderTime - startRecorderTime;
 
                 //找到平方求和最大的窗口 backmBuffer 就是找到的数据
-                long add = AudioUtil.calcBufferSize(mBuffer,read);
-                if(add > result){
+                long add = AudioUtil.calcBufferComplexSize(mBuffer);
+                if (add > result) {
                     result = add;
-                    System.arraycopy(mBuffer,0,backmBuffer,0,mBuffer.length);
+                    findcount = count;
+                    System.arraycopy(mBuffer, 0, backmBuffer, 0, mBuffer.length);
                 }
+                count++;
 
             }
 
+            resultFFTBuilder.append("\n find count=" + findcount + "  total count"+count);
+
+
+            Complex[] findComplex = AudioUtil.audioToComplex(backmBuffer);
+            Complex[] fftfindComplex = FFT.fft(findComplex);
 
             //进行数据 FFT 处理
-            //https://stackoverflow.com/questions/7651633/using-fft-in-android
-            DoubleFFT_1D fft = new DoubleFFT_1D(BUFFER_SIZE-1);
-            double[] audioDataDoubles = new double[BUFFER_SIZE];
+//            //https://stackoverflow.com/questions/7651633/using-fft-in-android
+//            DoubleFFT_1D fft = new DoubleFFT_1D(BUFFER_SIZE - 1);
+//            double[] audioDataDoubles = new double[BUFFER_SIZE];
+//
+//            for (int j = 0; j < BUFFER_SIZE; j++) { // get audio data in double[] format
+//                audioDataDoubles[j] = (double) backmBuffer[j];
+//            }
+//
+//            fft.realForward(audioDataDoubles);
 
-            for (int j=0; j < BUFFER_SIZE; j++) { // get audio data in double[] format
-                audioDataDoubles[j] = (double)backmBuffer[j];
-            }
-
-            fft.realForward(audioDataDoubles);
-            //fft.realForwardFull(audioDataDoubles);
-            StringBuilder strBuid = new StringBuilder();
             //求 FFT 的平均值
             double addsub = 0;
+            for (int i = 0; i < fftfindComplex.length; i++) {
+                addsub += Math.abs(fftfindComplex[i].phase());//数据取了绝对值
+            }
+
+
+            StringBuilder strBuid = new StringBuilder();
+//            //求 FFT 的平均值
+            //double addsub = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
                 //String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
-                String resultFFTData = backmBuffer[i] +" ";
-                strBuid.append(resultFFTData) ;
-                addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
+                String resultFFTData = backmBuffer[i] + " ";
+                strBuid.append(resultFFTData);
+                //addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
-            String tempFile = path.replace(".pcm","_find.pcm");
+
+            String tempFile1 = path.replace(".pcm", "_byte_find.pcm");
+            File tempFileFile1 = new File(tempFile1);
+            FileOutputStream tempmFileOutputStream1 = new FileOutputStream(tempFileFile1);
+            tempmFileOutputStream1.write(backmBuffer);
+
+            String tempFile = path.replace(".pcm", "_find.pcm");
             File tempFileFile = new File(tempFile);
             FileOutputStream tempmFileOutputStream = new FileOutputStream(tempFileFile);
             tempmFileOutputStream.write(strBuid.toString().getBytes());
-            double avgFFT = addsub/BUFFER_SIZE;//平均值
-            resultFFTBuilder.append("\n 平均值 avgFFT="+avgFFT );
-            Log.i("audio", "avgFFT="+avgFFT );
-            double checkValur = avgFFT*3;//3倍平均值
-            resultFFTBuilder.append("\n 3倍平均值 checkValur="+checkValur );
+
+
+            double avgFFT = addsub / fftfindComplex.length;//平均值
+            resultFFTBuilder.append("\n 平均值 avgFFT=" + avgFFT);
+            Log.i("audio", "avgFFT=" + avgFFT);
+            double checkValur = avgFFT * 2;//3倍平均值
+            resultFFTBuilder.append("\n 3倍平均值 checkValur=" + checkValur);
             double findValue = 0;
-            for (int i = 0; i < BUFFER_SIZE; i++) {
+            for (int i = 0; i < fftfindComplex.length; i++) {
                 //第一个大于3倍平均值
-                if(Math.abs(audioDataDoubles[i]) > checkValur) {
-                    findValue = audioDataDoubles[i];
-                    Log.i("audio", "找到的第一个大于3被平均值 findValue="+findValue + "  i="+i);
-                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue="+findValue + "  i="+i);
+                if (Math.abs(fftfindComplex[i].phase()) > checkValur) {
+                    findValue = fftfindComplex[i].phase();
+                    Log.i("audio", "找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
+                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
                     break;
                 }
             }
@@ -220,9 +248,9 @@ public class AudioSoundKnockDetector {
             fftResult = strBuid.toString();
 
             //退出循环，停止录音，释放资源
-            Log.i("audio", "vol_start stopRecorder mIsRecording="+mIsRecording);
-            Log.i("audio", "vol_start stopRecorder second="+second);
-            Log.i("audio", "vol_start stopRecorder result="+result);
+            Log.i("audio", "vol_start stopRecorder mIsRecording=" + mIsRecording);
+            Log.i("audio", "vol_start stopRecorder second=" + second);
+            Log.i("audio", "vol_start stopRecorder result=" + result);
             stopRecorder();
             // playAudio();
 
@@ -235,6 +263,76 @@ public class AudioSoundKnockDetector {
             }
         }
     }
+
+
+    public void findFrequency(double[] dData) {
+
+        double frequency;
+        int audioFrames = 2048;
+        DoubleFFT_1D fft = new DoubleFFT_1D(audioFrames);
+
+        double[] re = new double[audioFrames * 2];
+        double[] im = new double[audioFrames * 2];
+        double[] mag = new double[audioFrames * 2];
+
+        /* edu/emory/mathcs/jtransforms/fft/DoubleFFT_1D.java */
+
+        fft.complexForward(dData); // do the magic so we can find peak
+
+        for (int i = 0; i < audioFrames; i++) {
+            re[i] = dData[i * 2];
+            im[i] = dData[(i * 2) + 1];
+            mag[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i]));
+        }
+
+        double peak = -1.0;
+        int peakIn = -1;
+        for (int i = 0; i < audioFrames; i++) {
+            if (peak < mag[i]) {
+                peakIn = i;
+                peak = mag[i];
+            }
+        }
+
+//        frequency = (sampleRate * (double)peakIn) / (double)audioFrames;
+//
+//        System.out.print("Peak: "+peakIn+", Frequency: "+frequency+"\n");
+
+    }
+//————————————————
+//    版权声明：本文为CSDN博主「拯救大兵张嘎」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//    原文链接：https://blog.csdn.net/weixin_31212247/article/details/114589939
+
+
+    public double[] byteToDouble(byte[] byteData) {
+
+        //byte []byteData= new byte[2048 * 2]; //two bytes per audio frame, 16 bits
+
+        double[] dData = new double[2048 * 2]; // real & imaginary
+
+        ByteBuffer buf = ByteBuffer.wrap(byteData);
+
+        buf.order(ByteOrder.BIG_ENDIAN);
+
+        int i = 0;
+
+        while (buf.remaining() > 1) {
+
+            short s = buf.getShort();
+
+            dData[2 * i] = (double) s / 32768.0; //real
+
+            dData[2 * i + 1] = 0.0; // imag
+
+            ++i;
+
+        }
+        return dData;
+
+    }
+//————————————————
+//    版权声明：本文为CSDN博主「拯救大兵张嘎」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//    原文链接：https://blog.csdn.net/weixin_31212247/article/details/114589939
 
 
     /**
@@ -336,7 +434,7 @@ public class AudioSoundKnockDetector {
         return backmBuffer;
     }
 
-    public void playAudio(){
+    public void playAudio() {
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
