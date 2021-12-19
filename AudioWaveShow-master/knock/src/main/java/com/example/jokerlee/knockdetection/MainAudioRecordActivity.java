@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
+import com.example.jokerlee.knockdetection.utils.AudioUtil;
 
 
 import java.io.File;
@@ -281,6 +282,87 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         }
     }
+
+
+    /**
+     * 播放音频文件
+     *
+     * @param
+     */
+    public void doDataTransplayer(View view)  {
+        String path = "";
+        path = MainAudioRecordActivity.this.getExternalFilesDir("")+"/audio";
+        path = path + "/recorderdemo/1639839119716.pcm";
+        File audioFile = new File(path);
+        if (audioFile != null&audioFile.exists()) {
+            Log.i("Tag8", "go there");
+
+            FileInputStream inputStream = null;
+            try {
+                //循环读数据，写到播放器去播放
+                inputStream = new FileInputStream(audioFile);
+
+                //循环读数据，写到播放器去播放
+                int read;
+                //只要没读完，循环播放
+                int count = 0;
+                while ((read = inputStream.read(mBuffer)) > 0) {
+                    Log.i("Tag8", "read:" + read);
+                    //int ret = audioTrack.write(mBuffer, 0, read);
+                    //转成float
+                    float[] pcmAsFloats = AudioUtil.floatMeNew(mBuffer);
+                    // 将 buffer 找出最大值
+                    float v = 0;
+                    int max_index = 0;
+                    //Log.i("float", "temp= 1111111111111111111");
+                    Log.i("float", "pcmAsFloats.length=" + pcmAsFloats.length);
+                    for (int i = 0; i < pcmAsFloats.length; i++) {
+                        //double temp = Math.abs(complex[i].phase());
+                        float temp = Math.abs(pcmAsFloats[i]);
+                        Log.i("float", "temp=" + temp +"   i=" + (count*pcmAsFloats.length+i));
+                        if(temp > v){
+                            v = temp;
+                            max_index = i;
+                        }
+                    }
+
+                    float max = v;
+                    //然后打印出来
+                    Log.i("float", "max=" + max);
+                    //对比
+                    if (1 == count) {
+                        break;
+                    }
+
+                    count++;
+
+                }
+                //播放结束
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                //读取失败
+                //playFail();
+            } finally {
+                mIsPlaying = false;
+                //关闭文件输入流
+                if (inputStream != null) {
+                    closeStream(inputStream);
+                }
+
+            }
+
+            //循环读数据，写到播放器去播放
+
+
+            //错误处理，防止闪退
+
+        }
+        else{
+            Log.i("Tag8", "文件不存在");
+        }
+    }
+
 
     /**
      * 关闭输入流

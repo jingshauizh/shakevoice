@@ -158,7 +158,7 @@ public class AudioSoundKnockDetector {
             long currentRecorderTime = System.currentTimeMillis();
             //大于3秒算成功，在主线程更新UI
             long second = currentRecorderTime - startRecorderTime;
-            long result = 1;
+            float result = 1;
             int count = 0;
             int findcount = 0;
             while (mIsRecording && (second < 1000)) {
@@ -174,16 +174,40 @@ public class AudioSoundKnockDetector {
                 second = currentRecorderTime - startRecorderTime;
 
                 //找到平方求和最大的窗口 backmBuffer 就是找到的数据
-                long add = AudioUtil.calcBufferComplexSize(mBuffer);
-                if (add > result) {
-                    result = add;
+                //long add = AudioUtil.calcBufferComplexSize(mBuffer);
+                //double max = AudioUtil.calcMaxComplex(mBuffer);
+
+               // float max = AudioUtil.calcMaxFloat(mBuffer);
+
+                //float[] pcmAsFloats = AudioUtil.floatMe(AudioUtil.shortMe(mBuffer));
+                float[] pcmAsFloats = AudioUtil.floatMeNew(mBuffer);
+                // 将 buffer 找出最大值
+                float v = 0;
+                int max_index = 0;
+                //Log.i("float", "temp= 1111111111111111111");
+                for (int i = 0; i < pcmAsFloats.length; i++) {
+                    //double temp = Math.abs(complex[i].phase());
+                    float temp = Math.abs(pcmAsFloats[i]);
+                    //Log.i("float", "temp=" + temp);
+                    if(temp > v){
+                        v = temp;
+                        max_index = i;
+                    }
+                }
+
+                float max = v;
+
+
+                resultFFTBuilder.append("\n find max=" + max + "  max_index="+max_index +"  count="+count );
+                if (max > result) {
+                    result = max;
                     findcount = count;
                     System.arraycopy(mBuffer, 0, backmBuffer, 0, mBuffer.length);
                 }
                 count++;
 
             }
-
+            resultFFTBuilder.append("\n find result=" + result );
             resultFFTBuilder.append("\n find count=" + findcount + "  total count"+count);
 
 
@@ -232,7 +256,7 @@ public class AudioSoundKnockDetector {
             double avgFFT = addsub / fftfindComplex.length;//平均值
             resultFFTBuilder.append("\n 平均值 avgFFT=" + avgFFT);
             Log.i("audio", "avgFFT=" + avgFFT);
-            double checkValur = avgFFT * 2;//3倍平均值
+            double checkValur = avgFFT * 3;//3倍平均值
             resultFFTBuilder.append("\n 3倍平均值 checkValur=" + checkValur);
             double findValue = 0;
             for (int i = 0; i < fftfindComplex.length; i++) {
@@ -428,6 +452,88 @@ public class AudioSoundKnockDetector {
 
         }
     }
+
+
+
+    /**
+     * 播放音频文件
+     *
+     * @param
+     */
+    private void doDataTrans() {
+        String path = "";
+        File audioFile = new File(path);
+        if (audioFile != null&audioFile.exists()) {
+            Log.i("Tag8", "go there");
+            //配置播放器
+            //音乐类型，扬声器播放
+            int streamType = AudioManager.STREAM_MUSIC;
+            //录音时采用的采样频率，所以播放时同样的采样频率
+            int sampleRate = 44100;
+            //单声道，和录音时设置的一样
+            int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
+            //录音时使用16bit，所以播放时同样采用该方式
+            int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+            //流模式
+            int mode = AudioTrack.MODE_STREAM;
+
+            //计算最小buffer大小
+            int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+
+            //构造AudioTrack  不能小于AudioTrack的最低要求，也不能小于我们每次读的大小
+            AudioTrack audioTrack = new AudioTrack(streamType, sampleRate, channelConfig, audioFormat,
+                    Math.max(minBufferSize, BUFFER_SIZE), mode);
+            audioTrack.play();
+            //从文件流读数据
+            FileInputStream inputStream = null;
+            try {
+                //循环读数据，写到播放器去播放
+                inputStream = new FileInputStream(audioFile);
+
+                //循环读数据，写到播放器去播放
+                int read;
+                //只要没读完，循环播放
+                while ((read = inputStream.read(mBuffer)) > 0) {
+                    Log.i("Tag8", "read:" + read);
+                    int ret = audioTrack.write(mBuffer, 0, read);
+                    //检查write的返回值，处理错误
+                    switch (ret) {
+                        case AudioTrack.ERROR_INVALID_OPERATION:
+                        case AudioTrack.ERROR_BAD_VALUE:
+                        case AudioManager.ERROR_DEAD_OBJECT:
+                            playFail();
+                            return;
+                        default:
+                            break;
+                    }
+                }
+                //播放结束
+                audioTrack.stop();
+            } catch (Exception e) {
+                e.printStackTrace();
+                //读取失败
+                //playFail();
+            } finally {
+                mIsPlaying = false;
+                //关闭文件输入流
+                if (inputStream != null) {
+                    closeStream(inputStream);
+                }
+                //播放器释放
+                resetQuietly(audioTrack);
+            }
+
+            //循环读数据，写到播放器去播放
+
+
+            //错误处理，防止闪退
+
+        }
+        else{
+            Log.i("Tag8", "文件不存在");
+        }
+    }
+
 
 
     public byte[] getBackmBuffer() {
