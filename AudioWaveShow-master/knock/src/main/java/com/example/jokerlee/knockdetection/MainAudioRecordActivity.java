@@ -42,7 +42,7 @@ public class MainAudioRecordActivity extends BaseActivity {
     private byte[] mBuffer;
     private byte[] backmBuffer;
     //buffer值不能太大，避免OOM
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 2048;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;

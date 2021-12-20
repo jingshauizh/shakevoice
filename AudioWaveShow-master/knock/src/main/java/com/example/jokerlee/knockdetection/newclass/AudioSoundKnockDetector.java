@@ -61,9 +61,11 @@ public class AudioSoundKnockDetector {
     private File mAudioRecordFile;
     private byte[] mBuffer;
     private byte[] backmBuffer;
+    private byte[] backmBufferNext;
+    private byte[] findBuffer;
     private String fftResult = "";
     //buffer值不能太大，避免OOM
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 2048;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
@@ -75,6 +77,8 @@ public class AudioSoundKnockDetector {
         mExecutorService = Executors.newSingleThreadExecutor();
         mBuffer = new byte[BUFFER_SIZE];
         backmBuffer = new byte[BUFFER_SIZE];
+        backmBufferNext = new byte[BUFFER_SIZE];
+        findBuffer = new byte[BUFFER_SIZE];
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
     }
 
@@ -161,6 +165,8 @@ public class AudioSoundKnockDetector {
             float result = 1;
             int count = 0;
             int findcount = 0;
+            boolean setMaxFlag = false;
+            int findMaxIndex = 0;
             while (mIsRecording && (second < 1000)) {
                 //只要还在录音就一直读取
                 int read = mAudioRecord.read(mBuffer, 0, BUFFER_SIZE);
@@ -196,20 +202,36 @@ public class AudioSoundKnockDetector {
                 }
 
                 float max = v;
-
+                if(setMaxFlag){
+                    setMaxFlag = false;
+                    System.arraycopy(mBuffer, 0, backmBufferNext, 0, mBuffer.length);
+                    resultFFTBuilder.append("\n find result cache nex="  );
+                }
 
                 resultFFTBuilder.append("\n find max=" + max + "  max_index="+max_index +"  count="+count );
                 if (max > result) {
                     result = max;
                     findcount = count;
+                    findMaxIndex = max_index;
+                    setMaxFlag = true;
                     System.arraycopy(mBuffer, 0, backmBuffer, 0, mBuffer.length);
                 }
+
                 count++;
 
             }
             resultFFTBuilder.append("\n find result=" + result );
             resultFFTBuilder.append("\n find count=" + findcount + "  total count"+count);
 
+            //向最大值前面偏移50个点
+            if(findMaxIndex > 50){
+                findMaxIndex = findMaxIndex-50;
+            }
+            else{
+                findMaxIndex = 0;
+            }
+
+            findBuffer = AudioUtil.cutBufferFromIndex(backmBuffer,backmBufferNext,findMaxIndex);
 
             Complex[] findComplex = AudioUtil.audioToComplex(backmBuffer);
             Complex[] fftfindComplex = FFT.fft(findComplex);
@@ -237,7 +259,7 @@ public class AudioSoundKnockDetector {
             //double addsub = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
                 //String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
-                String resultFFTData = backmBuffer[i] + " ";
+                String resultFFTData = findBuffer[i] + " ";
                 strBuid.append(resultFFTData);
                 //addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
@@ -245,7 +267,7 @@ public class AudioSoundKnockDetector {
             String tempFile1 = path.replace(".pcm", "_byte_find.pcm");
             File tempFileFile1 = new File(tempFile1);
             FileOutputStream tempmFileOutputStream1 = new FileOutputStream(tempFileFile1);
-            tempmFileOutputStream1.write(backmBuffer);
+            tempmFileOutputStream1.write(findBuffer);
 
             String tempFile = path.replace(".pcm", "_find.pcm");
             File tempFileFile = new File(tempFile);

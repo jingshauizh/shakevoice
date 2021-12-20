@@ -237,5 +237,32 @@ public class AudioUtil {
         return floaters;
     }
 
+    public static byte [] cutBufferFromIndex(byte [] current, byte [] next, int index){
+        Log.i("audio", "cutBufferFromIndex current.length=" +current.length);
+        Log.i("audio", "cutBufferFromIndex index=" +index);
+        byte[] returlByte = new byte[current.length];
+        int resultIndex = 0;
+        for(int i=2*index;i<current.length;i++){
+
+            returlByte[resultIndex] = current[i];
+            Log.i("audio", "resultIndex = "+resultIndex);
+            Log.i("audio", "" +returlByte[resultIndex]);
+            Log.i("audio", "current[i]=" +current[i]);
+            resultIndex++ ;
+
+        }
+        for(int j=0;j<next.length;j++){
+            if(resultIndex >= current.length){
+                break;
+            }
+            returlByte[resultIndex] = next[j];
+            Log.i("audio", "resultIndex = "+resultIndex);
+            Log.i("audio", "" +returlByte[resultIndex]);
+            Log.i("audio", "next[j]=" +next[j]);
+            resultIndex++ ;
+        }
+        return returlByte;
+    }
+
 
 }
