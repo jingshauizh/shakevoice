@@ -191,20 +191,20 @@ public class AudioSoundKnockDetector {
                     //double temp = Math.abs(complex[i].phase());
                     float temp = Math.abs(pcmAsFloats[i]);
                     //Log.i("float", "temp=" + temp);
-                    if(temp > v){
+                    if (temp > v) {
                         v = temp;
                         max_index = i;
                     }
                 }
 
                 float max = v;
-                if(setMaxFlag){
+                if (setMaxFlag) {
                     setMaxFlag = false;
                     System.arraycopy(mBuffer, 0, backmBufferNext, 0, mBuffer.length);
-                    resultFFTBuilder.append("\n find result cache nex="  );
+                    resultFFTBuilder.append("\n find result cache nex=");
                 }
 
-                resultFFTBuilder.append("\n find max=" + max + "  max_index="+max_index +"  count="+count );
+                resultFFTBuilder.append("\n find max=" + max + "  max_index=" + max_index + "  count=" + count);
                 if (max > result) {
                     result = max;
                     findcount = count;
@@ -216,51 +216,44 @@ public class AudioSoundKnockDetector {
                 count++;
 
             }
-            resultFFTBuilder.append("\n find result=" + result );
-            resultFFTBuilder.append("\n find count=" + findcount + "  total count"+count);
+            resultFFTBuilder.append("\n find result=" + result);
+            resultFFTBuilder.append("\n find count=" + findcount + "  total count" + count);
 
             //向最大值前面偏移50个点
-            if(findMaxIndex > 50){
-                findMaxIndex = findMaxIndex-50;
-            }
-            else{
+            if (findMaxIndex > 50) {
+                findMaxIndex = findMaxIndex - 50;
+            } else {
                 findMaxIndex = 0;
             }
 
-            findBuffer = AudioUtil.cutBufferFromIndex(backmBuffer,backmBufferNext,findMaxIndex);
+            findBuffer = AudioUtil.cutBufferFromIndex(backmBuffer, backmBufferNext, findMaxIndex);
 
+            //2byte  转成一个double
             double[] pcmAsDoubles = AudioUtil.doubleMeNew(findBuffer);
 
             Log.i("audio", "pcmAsDoubles=" + pcmAsDoubles.length);
 
 
-            //Complex FFT
+            //double 转成 Complex 数组
             Complex[] findComplex = AudioUtil.doubleToComplex(pcmAsDoubles);
             Log.i("audio", "findComplex=" + findComplex.length);
+
+            // Complex 数组 做FFT
             Complex[] fftfindComplex = NewFFT.fft(findComplex);
             Log.i("audio", "fftfindComplex=" + fftfindComplex.length);
-            fftResult = ayncFFTComplexDatas(fftfindComplex,path);
+
+            // 对FFT结果进行分析
+            fftResult = ayncFFTComplexDatas(fftfindComplex, path);
+
             StringBuilder fftstrBuid = new StringBuilder();
-            //求 FFT 的平均值
-            double addsub = 0;
-//            for (int i = 0; i < pcmAsDoubles.length; i++) {
-//                fftstrBuid.append(pcmAsDoubles[i]+"\n");
-//            }
-
             fftstrBuid.append("FFT 1111111111111111=============\n");
-
             for (int i = 0; i < fftfindComplex.length; i++) {
-                addsub += Math.abs(fftfindComplex[i].phase());//数据取了绝对值
-                fftstrBuid.append(fftfindComplex[i].toString()+"\n");
+                fftstrBuid.append(fftfindComplex[i].toString() + "\n");
             }
-
 
             StringBuilder strBuid = new StringBuilder();
 
 
-
-//            //求 FFT 的平均值
-            //double addsub = 0;
             for (int i = 0; i < pcmAsDoubles.length; i++) {
                 //String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
                 String resultFFTData = pcmAsDoubles[i] + ",";
@@ -284,10 +277,6 @@ public class AudioSoundKnockDetector {
             tempmFileOutputStream2.write(fftstrBuid.toString().getBytes());
 
 
-
-
-
-
             stopRecorder();
             // playAudio();
 
@@ -302,24 +291,33 @@ public class AudioSoundKnockDetector {
     }
 
 
-    private String ayncFFTComplexDatas(Complex[] fftfindComplex,String path){
+    /**
+     * 对FFT结果进行分析
+     *
+     * @param fftfindComplex
+     * @param path
+     * @return
+     */
+    private String ayncFFTComplexDatas(Complex[] fftfindComplex, String path) {
+        //记录分析数据 在页面展示
         StringBuilder fftstrBuid = new StringBuilder();
         //求 FFT 的平均值
         double addsub = 0;
-
-        fftstrBuid.append("FFT ayncFFTComplexDatas=============\n");
-
+        //找到所有结果的abs 总和求平均值
         for (int i = 0; i < fftfindComplex.length; i++) {
             addsub += fftfindComplex[i].abs();//数据取了绝对值
-            //fftstrBuid.append(fftfindComplex[i].toString() + "\n");
         }
         fftstrBuid.append("FFT ayncFFT ComplexDatas  checked data=============\n");
 
+        //求平均值
         double avg = addsub / fftfindComplex.length;
         fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
+
+        //平均值 的 5倍 做一个检测标准
         double checkValue = avg * FFT_CHECK_Times;
         fftstrBuid.append("FFT ayncFFT ComplexDatas  checkValue=" + checkValue + "\n");
 
+        //大于平均值 的 5倍 数据记录下来
         for (int i = 0; i < fftfindComplex.length; i++) {
             double temp = fftfindComplex[i].abs();//数据取了绝对值
             if (temp > checkValue) {
@@ -327,6 +325,8 @@ public class AudioSoundKnockDetector {
             }
         }
         Log.i("audio", "fftstrBuid=" + fftstrBuid.toString());
+
+        //记录数据写文件
         String tempFile3 = path.replace(".pcm", "_sync_fft.pcm");
         try {
             File tempFileFile2 = new File(tempFile3);
@@ -339,76 +339,6 @@ public class AudioSoundKnockDetector {
         return fftstrBuid.toString();
 
     }
-
-
-    public void findFrequency(double[] dData) {
-
-        double frequency;
-        int audioFrames = 2048;
-        DoubleFFT_1D fft = new DoubleFFT_1D(audioFrames);
-
-        double[] re = new double[audioFrames * 2];
-        double[] im = new double[audioFrames * 2];
-        double[] mag = new double[audioFrames * 2];
-
-        /* edu/emory/mathcs/jtransforms/fft/DoubleFFT_1D.java */
-
-        fft.complexForward(dData); // do the magic so we can find peak
-
-        for (int i = 0; i < audioFrames; i++) {
-            re[i] = dData[i * 2];
-            im[i] = dData[(i * 2) + 1];
-            mag[i] = Math.sqrt((re[i] * re[i]) + (im[i] * im[i]));
-        }
-
-        double peak = -1.0;
-        int peakIn = -1;
-        for (int i = 0; i < audioFrames; i++) {
-            if (peak < mag[i]) {
-                peakIn = i;
-                peak = mag[i];
-            }
-        }
-
-//        frequency = (sampleRate * (double)peakIn) / (double)audioFrames;
-//
-//        System.out.print("Peak: "+peakIn+", Frequency: "+frequency+"\n");
-
-    }
-//————————————————
-//    版权声明：本文为CSDN博主「拯救大兵张嘎」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-//    原文链接：https://blog.csdn.net/weixin_31212247/article/details/114589939
-
-
-    public double[] byteToDouble(byte[] byteData) {
-
-        //byte []byteData= new byte[2048 * 2]; //two bytes per audio frame, 16 bits
-
-        double[] dData = new double[2048 * 2]; // real & imaginary
-
-        ByteBuffer buf = ByteBuffer.wrap(byteData);
-
-        buf.order(ByteOrder.BIG_ENDIAN);
-
-        int i = 0;
-
-        while (buf.remaining() > 1) {
-
-            short s = buf.getShort();
-
-            dData[2 * i] = (double) s / 32768.0; //real
-
-            dData[2 * i + 1] = 0.0; // imag
-
-            ++i;
-
-        }
-        return dData;
-
-    }
-//————————————————
-//    版权声明：本文为CSDN博主「拯救大兵张嘎」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-//    原文链接：https://blog.csdn.net/weixin_31212247/article/details/114589939
 
 
     /**
@@ -431,178 +361,9 @@ public class AudioSoundKnockDetector {
         return fftResult;
     }
 
-    /**
-     * 播放音频文件
-     *
-     * @param audioFile
-     */
-    private void doPlay(File audioFile) {
-        if (audioFile != null) {
-            Log.i("Tag8", "go there");
-            //配置播放器
-            //音乐类型，扬声器播放
-            int streamType = AudioManager.STREAM_MUSIC;
-            //录音时采用的采样频率，所以播放时同样的采样频率
-            int sampleRate = 44100;
-            //单声道，和录音时设置的一样
-            int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
-            //录音时使用16bit，所以播放时同样采用该方式
-            int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-            //流模式
-            int mode = AudioTrack.MODE_STREAM;
-
-            //计算最小buffer大小
-            int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat);
-
-            //构造AudioTrack  不能小于AudioTrack的最低要求，也不能小于我们每次读的大小
-            AudioTrack audioTrack = new AudioTrack(streamType, sampleRate, channelConfig, audioFormat,
-                    Math.max(minBufferSize, BUFFER_SIZE), mode);
-            audioTrack.play();
-            //从文件流读数据
-            FileInputStream inputStream = null;
-            try {
-                //循环读数据，写到播放器去播放
-                inputStream = new FileInputStream(audioFile);
-
-                //循环读数据，写到播放器去播放
-                int read;
-                //只要没读完，循环播放
-                while ((read = inputStream.read(mBuffer)) > 0) {
-                    Log.i("Tag8", "read:" + read);
-                    int ret = audioTrack.write(mBuffer, 0, read);
-                    //检查write的返回值，处理错误
-                    switch (ret) {
-                        case AudioTrack.ERROR_INVALID_OPERATION:
-                        case AudioTrack.ERROR_BAD_VALUE:
-                        case AudioManager.ERROR_DEAD_OBJECT:
-                            playFail();
-                            return;
-                        default:
-                            break;
-                    }
-                }
-                //播放结束
-                audioTrack.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-                //读取失败
-                //playFail();
-            } finally {
-                mIsPlaying = false;
-                //关闭文件输入流
-                if (inputStream != null) {
-                    closeStream(inputStream);
-                }
-                //播放器释放
-                resetQuietly(audioTrack);
-            }
-
-            //循环读数据，写到播放器去播放
-
-
-            //错误处理，防止闪退
-
-        }
-    }
-
-
-
-    /**
-     * 播放音频文件
-     *
-     * @param
-     */
-    private void doDataTrans() {
-        String path = "";
-        File audioFile = new File(path);
-        if (audioFile != null&audioFile.exists()) {
-            Log.i("Tag8", "go there");
-            //配置播放器
-            //音乐类型，扬声器播放
-            int streamType = AudioManager.STREAM_MUSIC;
-            //录音时采用的采样频率，所以播放时同样的采样频率
-            int sampleRate = 44100;
-            //单声道，和录音时设置的一样
-            int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
-            //录音时使用16bit，所以播放时同样采用该方式
-            int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-            //流模式
-            int mode = AudioTrack.MODE_STREAM;
-
-            //计算最小buffer大小
-            int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat);
-
-            //构造AudioTrack  不能小于AudioTrack的最低要求，也不能小于我们每次读的大小
-            AudioTrack audioTrack = new AudioTrack(streamType, sampleRate, channelConfig, audioFormat,
-                    Math.max(minBufferSize, BUFFER_SIZE), mode);
-            audioTrack.play();
-            //从文件流读数据
-            FileInputStream inputStream = null;
-            try {
-                //循环读数据，写到播放器去播放
-                inputStream = new FileInputStream(audioFile);
-
-                //循环读数据，写到播放器去播放
-                int read;
-                //只要没读完，循环播放
-                while ((read = inputStream.read(mBuffer)) > 0) {
-                    Log.i("Tag8", "read:" + read);
-                    int ret = audioTrack.write(mBuffer, 0, read);
-                    //检查write的返回值，处理错误
-                    switch (ret) {
-                        case AudioTrack.ERROR_INVALID_OPERATION:
-                        case AudioTrack.ERROR_BAD_VALUE:
-                        case AudioManager.ERROR_DEAD_OBJECT:
-                            playFail();
-                            return;
-                        default:
-                            break;
-                    }
-                }
-                //播放结束
-                audioTrack.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-                //读取失败
-                //playFail();
-            } finally {
-                mIsPlaying = false;
-                //关闭文件输入流
-                if (inputStream != null) {
-                    closeStream(inputStream);
-                }
-                //播放器释放
-                resetQuietly(audioTrack);
-            }
-
-            //循环读数据，写到播放器去播放
-
-
-            //错误处理，防止闪退
-
-        }
-        else{
-            Log.i("Tag8", "文件不存在");
-        }
-    }
-
-
 
     public byte[] getBackmBuffer() {
         return backmBuffer;
-    }
-
-    public void playAudio() {
-        mExecutorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (!mIsPlaying) {
-                    Log.i("Tag8", "go here");
-                    mIsPlaying = true;
-                    doPlay(mAudioRecordFile);
-                }
-            }
-        });
     }
 
     /**
