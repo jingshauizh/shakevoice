@@ -1,5 +1,18 @@
 package com.example.jokerlee.knockdetection.utils;
 
+
+/**
+ *
+ *
+ * http://www.yunsuan.info/cgi-bin/fft_1d.py
+ * 在线计算
+ *
+ *
+ * https://www.cnblogs.com/tt2015-sz/p/5616534.html
+ * 通过Android录音进行简单音频分析
+ *
+ *
+ */
 public class FFT {
     // compute the FFT of x[], assuming its length is a power of 2
     public static Complex[] fft(Complex[] x) {
@@ -119,13 +132,13 @@ public class FFT {
 
     public static void main(String[] args) {
         //int N = Integer.parseInt(args[0]);
-        int N = 8;
+        int N = 4;
         Complex[] x = new Complex[N];
 
         // original data
         for (int i = 0; i < N; i++) {
             x[i] = new Complex(i, 0);
-            x[i] = new Complex(-2 * Math.random() + 1, 0);
+            //x[i] = new Complex(-2 * Math.random() + 1, 0);
         }
         show(x, "x");
 
@@ -145,6 +158,38 @@ public class FFT {
         Complex[] d = convolve(x, x);
         show(d, "d = convolve(x, x)");
     }
+//————————————————
+//    版权声明：本文为CSDN博主「fjssharpsword」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//    原文链接：https://blog.csdn.net/fjssharpsword/article/details/53282918
+//
+//    public static void main(String[] args) {
+//        //int N = Integer.parseInt(args[0]);
+//        int N = 8;
+//        Complex[] x = new Complex[N];
+//
+//        // original data
+//        for (int i = 0; i < N; i++) {
+//            x[i] = new Complex(i, 0);
+//            x[i] = new Complex(-2 * Math.random() + 1, 0);
+//        }
+//        show(x, "x");
+//
+//        // FFT of original data
+//        Complex[] y = fft(x);
+//        show(y, "y = fft(x)");
+//
+//        // take inverse FFT
+//        Complex[] z = ifft(y);
+//        show(z, "z = ifft(y)");
+//
+//        // circular convolution of x with itself
+//        Complex[] c = cconvolve(x, x);
+//        show(c, "c = cconvolve(x, x)");
+//
+//        // linear convolution of x with itself
+//        Complex[] d = convolve(x, x);
+//        show(d, "d = convolve(x, x)");
+//    }
 //————————————————
 //    版权声明：本文为CSDN博主「fjssharpsword」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
 //    原文链接：https://blog.csdn.net/fjssharpsword/article/details/53282918

@@ -14,6 +14,7 @@ import android.util.Log;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
 import com.example.jokerlee.knockdetection.utils.Complex;
 import com.example.jokerlee.knockdetection.utils.FFT;
+import com.example.jokerlee.knockdetection.utils.NewFFT;
 
 import org.jtransforms.fft.DoubleFFT_1D;
 
@@ -233,33 +234,51 @@ public class AudioSoundKnockDetector {
 
             findBuffer = AudioUtil.cutBufferFromIndex(backmBuffer,backmBufferNext,findMaxIndex);
 
-            Complex[] findComplex = AudioUtil.audioToComplex(backmBuffer);
-            Complex[] fftfindComplex = FFT.fft(findComplex);
+            double[] pcmAsDoubles = AudioUtil.doubleMeNew(findBuffer);
 
+            Log.i("audio", "pcmAsDoubles=" + pcmAsDoubles.length);
+//            pcmAsDoubles = new double[4];
+//            pcmAsDoubles[0] = 1;
+//            pcmAsDoubles[1] = 2;
+//            pcmAsDoubles[2] = 3;
+//            pcmAsDoubles[3] = 0;
+
+            //Complex FFT
+            Complex[] findComplex = AudioUtil.doubleToComplex(pcmAsDoubles);
+            Log.i("audio", "findComplex=" + findComplex.length);
+            Complex[] fftfindComplex = NewFFT.fft(findComplex);
+            Log.i("audio", "fftfindComplex=" + fftfindComplex.length);
             //进行数据 FFT 处理
-//            //https://stackoverflow.com/questions/7651633/using-fft-in-android
-//            DoubleFFT_1D fft = new DoubleFFT_1D(BUFFER_SIZE - 1);
-//            double[] audioDataDoubles = new double[BUFFER_SIZE];
+            //https://stackoverflow.com/questions/7651633/using-fft-in-android
+//            DoubleFFT_1D fft = new DoubleFFT_1D(pcmAsDoubles.length-1);
 //
-//            for (int j = 0; j < BUFFER_SIZE; j++) { // get audio data in double[] format
-//                audioDataDoubles[j] = (double) backmBuffer[j];
-//            }
 //
-//            fft.realForward(audioDataDoubles);
-
+////
+//            fft.realForward(pcmAsDoubles);
+            StringBuilder fftstrBuid = new StringBuilder();
             //求 FFT 的平均值
             double addsub = 0;
+//            for (int i = 0; i < pcmAsDoubles.length; i++) {
+//                fftstrBuid.append(pcmAsDoubles[i]+"\n");
+//            }
+
+            fftstrBuid.append("FFT 1111111111111111=============\n");
+
             for (int i = 0; i < fftfindComplex.length; i++) {
                 addsub += Math.abs(fftfindComplex[i].phase());//数据取了绝对值
+                fftstrBuid.append(fftfindComplex[i].toString()+"\n");
             }
 
 
             StringBuilder strBuid = new StringBuilder();
+
+
+
 //            //求 FFT 的平均值
             //double addsub = 0;
-            for (int i = 0; i < BUFFER_SIZE; i++) {
+            for (int i = 0; i < pcmAsDoubles.length; i++) {
                 //String resultFFTData = "FFTaudiodata=" + audioDataDoubles[i] + "   pcm mBuffer=" + backmBuffer[i] + " no= " + i;
-                String resultFFTData = findBuffer[i] + " ";
+                String resultFFTData = pcmAsDoubles[i] + ",";
                 strBuid.append(resultFFTData);
                 //addsub += Math.abs(audioDataDoubles[i]);//数据取了绝对值
             }
@@ -269,27 +288,32 @@ public class AudioSoundKnockDetector {
             FileOutputStream tempmFileOutputStream1 = new FileOutputStream(tempFileFile1);
             tempmFileOutputStream1.write(findBuffer);
 
-            String tempFile = path.replace(".pcm", "_find.pcm");
+            String tempFile = path.replace(".pcm", "_double_find.pcm");
             File tempFileFile = new File(tempFile);
             FileOutputStream tempmFileOutputStream = new FileOutputStream(tempFileFile);
             tempmFileOutputStream.write(strBuid.toString().getBytes());
 
+            String tempFile2 = path.replace(".pcm", "_find_fft.pcm");
+            File tempFileFile2 = new File(tempFile2);
+            FileOutputStream tempmFileOutputStream2 = new FileOutputStream(tempFileFile2);
+            tempmFileOutputStream2.write(fftstrBuid.toString().getBytes());
 
-            double avgFFT = addsub / fftfindComplex.length;//平均值
-            resultFFTBuilder.append("\n 平均值 avgFFT=" + avgFFT);
-            Log.i("audio", "avgFFT=" + avgFFT);
-            double checkValur = avgFFT * 3;//3倍平均值
-            resultFFTBuilder.append("\n 3倍平均值 checkValur=" + checkValur);
-            double findValue = 0;
-            for (int i = 0; i < fftfindComplex.length; i++) {
-                //第一个大于3倍平均值
-                if (Math.abs(fftfindComplex[i].phase()) > checkValur) {
-                    findValue = fftfindComplex[i].phase();
-                    Log.i("audio", "找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
-                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
-                    break;
-                }
-            }
+
+//            double avgFFT = addsub / fftfindComplex.length;//平均值
+//            resultFFTBuilder.append("\n 平均值 avgFFT=" + avgFFT);
+//            Log.i("audio", "avgFFT=" + avgFFT);
+//            double checkValur = avgFFT * 3;//3倍平均值
+//            resultFFTBuilder.append("\n 3倍平均值 checkValur=" + checkValur);
+//            double findValue = 0;
+//            for (int i = 0; i < fftfindComplex.length; i++) {
+//                //第一个大于3倍平均值
+//                if (Math.abs(fftfindComplex[i].phase()) > checkValur) {
+//                    findValue = fftfindComplex[i].phase();
+//                    Log.i("audio", "找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
+//                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
+//                    break;
+//                }
+//            }
 
             fftResult = strBuid.toString();
 

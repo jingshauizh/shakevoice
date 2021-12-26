@@ -237,6 +237,28 @@ public class AudioUtil {
         return floaters;
     }
 
+    public static double[] doubleMeNew(byte[] bytes) {
+        int length = bytes.length / 2;
+        double[] floaters = new double[length];
+        byte[] tempByte = new byte[2];
+        for (int i = 0; i < length; i++) {
+            tempByte[0] = bytes[2*i];
+            tempByte[1] = bytes[2*i+1];
+            float temp = byte2float(tempByte,0);
+            floaters[i] = temp;
+        }
+        return floaters;
+    }
+
+    public static Complex[] doubleToComplex( double[] doubleData) {
+        int complexLenght = doubleData.length ;
+        Complex[] returnComplex = new Complex[complexLenght];
+        for (int i = 0; i < complexLenght; i++) {
+            returnComplex[i] = new Complex(doubleData[i], 0);
+        }
+        return returnComplex;
+    }
+
     public static byte [] cutBufferFromIndex(byte [] current, byte [] next, int index){
         Log.i("audio", "cutBufferFromIndex current.length=" +current.length);
         Log.i("audio", "cutBufferFromIndex index=" +index);
