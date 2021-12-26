@@ -67,6 +67,7 @@ public class AudioSoundKnockDetector {
     private String fftResult = "";
     //buffer值不能太大，避免OOM
     private static final int BUFFER_SIZE = 2048;
+    private static final int FFT_CHECK_Times = 5;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
@@ -180,13 +181,7 @@ public class AudioSoundKnockDetector {
                 currentRecorderTime = System.currentTimeMillis();
                 second = currentRecorderTime - startRecorderTime;
 
-                //找到平方求和最大的窗口 backmBuffer 就是找到的数据
-                //long add = AudioUtil.calcBufferComplexSize(mBuffer);
-                //double max = AudioUtil.calcMaxComplex(mBuffer);
 
-               // float max = AudioUtil.calcMaxFloat(mBuffer);
-
-                //float[] pcmAsFloats = AudioUtil.floatMe(AudioUtil.shortMe(mBuffer));
                 float[] pcmAsFloats = AudioUtil.floatMeNew(mBuffer);
                 // 将 buffer 找出最大值
                 float v = 0;
@@ -237,24 +232,14 @@ public class AudioSoundKnockDetector {
             double[] pcmAsDoubles = AudioUtil.doubleMeNew(findBuffer);
 
             Log.i("audio", "pcmAsDoubles=" + pcmAsDoubles.length);
-//            pcmAsDoubles = new double[4];
-//            pcmAsDoubles[0] = 1;
-//            pcmAsDoubles[1] = 2;
-//            pcmAsDoubles[2] = 3;
-//            pcmAsDoubles[3] = 0;
+
 
             //Complex FFT
             Complex[] findComplex = AudioUtil.doubleToComplex(pcmAsDoubles);
             Log.i("audio", "findComplex=" + findComplex.length);
             Complex[] fftfindComplex = NewFFT.fft(findComplex);
             Log.i("audio", "fftfindComplex=" + fftfindComplex.length);
-            //进行数据 FFT 处理
-            //https://stackoverflow.com/questions/7651633/using-fft-in-android
-//            DoubleFFT_1D fft = new DoubleFFT_1D(pcmAsDoubles.length-1);
-//
-//
-////
-//            fft.realForward(pcmAsDoubles);
+            fftResult = ayncFFTComplexDatas(fftfindComplex,path);
             StringBuilder fftstrBuid = new StringBuilder();
             //求 FFT 的平均值
             double addsub = 0;
@@ -299,28 +284,10 @@ public class AudioSoundKnockDetector {
             tempmFileOutputStream2.write(fftstrBuid.toString().getBytes());
 
 
-//            double avgFFT = addsub / fftfindComplex.length;//平均值
-//            resultFFTBuilder.append("\n 平均值 avgFFT=" + avgFFT);
-//            Log.i("audio", "avgFFT=" + avgFFT);
-//            double checkValur = avgFFT * 3;//3倍平均值
-//            resultFFTBuilder.append("\n 3倍平均值 checkValur=" + checkValur);
-//            double findValue = 0;
-//            for (int i = 0; i < fftfindComplex.length; i++) {
-//                //第一个大于3倍平均值
-//                if (Math.abs(fftfindComplex[i].phase()) > checkValur) {
-//                    findValue = fftfindComplex[i].phase();
-//                    Log.i("audio", "找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
-//                    resultFFTBuilder.append("\n 找到的第一个大于3被平均值 findValue=" + findValue + "  i=" + i);
-//                    break;
-//                }
-//            }
 
-            fftResult = strBuid.toString();
 
-            //退出循环，停止录音，释放资源
-            Log.i("audio", "vol_start stopRecorder mIsRecording=" + mIsRecording);
-            Log.i("audio", "vol_start stopRecorder second=" + second);
-            Log.i("audio", "vol_start stopRecorder result=" + result);
+
+
             stopRecorder();
             // playAudio();
 
@@ -332,6 +299,45 @@ public class AudioSoundKnockDetector {
                 mAudioRecord.release();
             }
         }
+    }
+
+
+    private String ayncFFTComplexDatas(Complex[] fftfindComplex,String path){
+        StringBuilder fftstrBuid = new StringBuilder();
+        //求 FFT 的平均值
+        double addsub = 0;
+
+        fftstrBuid.append("FFT ayncFFTComplexDatas=============\n");
+
+        for (int i = 0; i < fftfindComplex.length; i++) {
+            addsub += fftfindComplex[i].abs();//数据取了绝对值
+            //fftstrBuid.append(fftfindComplex[i].toString() + "\n");
+        }
+        fftstrBuid.append("FFT ayncFFT ComplexDatas  checked data=============\n");
+
+        double avg = addsub / fftfindComplex.length;
+        fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
+        double checkValue = avg * FFT_CHECK_Times;
+        fftstrBuid.append("FFT ayncFFT ComplexDatas  checkValue=" + checkValue + "\n");
+
+        for (int i = 0; i < fftfindComplex.length; i++) {
+            double temp = fftfindComplex[i].abs();//数据取了绝对值
+            if (temp > checkValue) {
+                fftstrBuid.append("index=" + i + "  abs=" + temp + "\n");
+            }
+        }
+        Log.i("audio", "fftstrBuid=" + fftstrBuid.toString());
+        String tempFile3 = path.replace(".pcm", "_sync_fft.pcm");
+        try {
+            File tempFileFile2 = new File(tempFile3);
+            FileOutputStream tempmFileOutputStream2 = new FileOutputStream(tempFileFile2);
+            tempmFileOutputStream2.write(fftstrBuid.toString().getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return fftstrBuid.toString();
+
     }
 
 

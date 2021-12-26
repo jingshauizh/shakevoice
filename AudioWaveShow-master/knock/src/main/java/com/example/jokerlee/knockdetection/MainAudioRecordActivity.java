@@ -100,7 +100,7 @@ public class MainAudioRecordActivity extends BaseActivity {
             //在开始录音中如果这个值没有变false，则一直进行，当再次点击变false时，录音才停止
             mIsRecording = false;
             audioFilePath = MainAudioRecordActivity.this.getExternalFilesDir("")+"/audio";
-            audioFilePath = audioFilePath + "/recorderdemo/" + System.currentTimeMillis() + ".pcm";
+            audioFilePath = audioFilePath + "/recorderdemo/" + AudioUtil.getCurrentDateTime() + ".pcm";
             mKnockDetector.startDetecting(audioFilePath);
 
         } else {

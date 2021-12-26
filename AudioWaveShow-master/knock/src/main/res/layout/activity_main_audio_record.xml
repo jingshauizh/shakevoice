@@ -82,7 +82,7 @@
                 android:background="#50000000"
                 android:onClick="show"
                 android:padding="10dp"
-                android:text="显示 FFT数据"
+                android:text="显示 FFT数据分析结果"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 

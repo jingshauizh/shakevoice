@@ -3,6 +3,7 @@ package com.example.jokerlee.knockdetection.utils;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 
 public class AudioUtil {
 
@@ -285,6 +286,13 @@ public class AudioUtil {
         }
         return returlByte;
     }
+
+    public static String getCurrentDateTime(){
+        SimpleDateFormat dateformat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        String dateStr = dateformat.format(System.currentTimeMillis());
+        return dateStr;
+    }
+
 
 
 }
