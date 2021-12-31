@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AudioWaveShow-master.iml" filepath="$PROJECT_DIR$/AudioWaveShow-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MPChartLib/MPChartLibM.iml" filepath="$PROJECT_DIR$/MPChartLib/MPChartLibM.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/knock/knock.iml" filepath="$PROJECT_DIR$/knock/knock.iml" />
     </modules>

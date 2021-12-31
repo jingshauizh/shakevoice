@@ -7,12 +7,14 @@ package com.example.jokerlee.knockdetection.backup;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.jokerlee.knockdetection.back2.KnockDetector;
 import com.example.jokerlee.knockdetection.R;

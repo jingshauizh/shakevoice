@@ -75,6 +75,7 @@ public class AudioSoundKnockDetector {
     private StringBuilder resultFFTBuilder;
 
     private double[] finderDoubles;
+    private double[] finderFFTAbsDoubles;
 
     public AudioSoundKnockDetector(Context context) {
         mContext = context;
@@ -245,6 +246,8 @@ public class AudioSoundKnockDetector {
             Log.i("audio", "fftfindComplex=" + fftfindComplex.length);
 
             fftResult = ayncDoubleDatas(pcmAsDoubles);
+
+            complexAbs(fftfindComplex);
             // 对FFT结果进行分析
             fftResult += ayncFFTComplexDatas(fftfindComplex, path);
 
@@ -291,6 +294,18 @@ public class AudioSoundKnockDetector {
                 mAudioRecord.release();
             }
         }
+    }
+
+    private void complexAbs(Complex[] fftfindComplex){
+        if(null == fftfindComplex && fftfindComplex.length == 0){
+            return;
+        }
+        double [] fftabs = new double[300];
+        for (int i = 0; i < 300; i++) {
+            double temp = fftfindComplex[i].abs();
+            fftabs[i] = temp;
+        }
+        finderFFTAbsDoubles = fftabs;
     }
 
     private String ayncDoubleDatas(double[] doubleDatas) {
@@ -403,6 +418,9 @@ public class AudioSoundKnockDetector {
         return finderDoubles;
     }
 
+    public double [] getFFTAbsDoubles() {
+        return finderFFTAbsDoubles;
+    }
 
     public byte[] getBackmBuffer() {
         return backmBuffer;

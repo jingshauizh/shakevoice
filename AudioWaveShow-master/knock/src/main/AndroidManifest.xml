@@ -18,8 +18,12 @@
                 <action android:name="android.intent.action.MAIN"></action>
                 <category android:name="android.intent.category.LAUNCHER"></category>
             </intent-filter>
-        </activity>
 
+        </activity>
+        <activity android:name=".demochart.PerformanceLineChart"
+            android:screenOrientation="portrait">
+
+        </activity>
         <activity android:name=".back2.AudioRecordActivity">
 
         </activity>

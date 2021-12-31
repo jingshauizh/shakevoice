@@ -108,18 +108,30 @@
                 android:background="#50000000"
                 android:onClick="showLines"
                 android:padding="10dp"
-                android:text="显示 数据曲线"
+                android:text="显示 Find 数据曲线"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 
-             <com.example.jokerlee.knockdetection.ui.DrawLineChart
-                 android:id="@+id/dl_lines"
-                 android:layout_width="match_parent"
-                 android:layout_height="300dp"
-                 android:layout_below="@+id/btn_show_line"
-                 >
+            <Button
+                android:id="@+id/btn_show_fft_line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/btn_show_line"
+                android:layout_margin="10dp"
+                android:background="#50000000"
+                android:onClick="showFFTLines"
+                android:padding="10dp"
+                android:text="显示 FFT ABS数据曲线"
+                android:textColor="#fff"
+                android:textSize="24sp" />
 
-             </com.example.jokerlee.knockdetection.ui.DrawLineChart>
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart1"
+                android:layout_below="@+id/btn_show_fft_line"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                 />
+
 
         </RelativeLayout>
     </ScrollView>

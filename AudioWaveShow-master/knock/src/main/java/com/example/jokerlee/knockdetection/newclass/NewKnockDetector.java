@@ -113,6 +113,10 @@ abstract public class NewKnockDetector {
 		return mSoundKnockDetector.getFindeDoubles();
 	}
 
+	public double [] getFFTAbsDoubles() {
+		return mSoundKnockDetector.getFFTAbsDoubles();
+	}
+
 
 	public String getResultFFTBuilder() {
 		return mSoundKnockDetector.getResultFFTBuilder();

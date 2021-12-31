@@ -2,6 +2,7 @@ package com.example.jokerlee.knockdetection;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -20,12 +21,18 @@ import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
 import com.example.jokerlee.knockdetection.ui.DrawLineChart;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,7 +60,7 @@ public class MainAudioRecordActivity extends BaseActivity {
 
     private String audioFilePath = "";
 
-
+    private LineChart chart;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +94,32 @@ public class MainAudioRecordActivity extends BaseActivity {
         bt_stream_recorder = (Button) findViewById(R.id.bt_stream_recorder);
         tv_stream_msg = (TextView) findViewById(R.id.tv_stream_msg);
         tv_fft_msg = (TextView) findViewById(R.id.media_record);
+
+        chart = findViewById(R.id.chart1);
+        chart.setDrawGridBackground(false);
+
+        // no description text
+        chart.getDescription().setEnabled(false);
+
+        // enable touch gestures
+        chart.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(true);
+
+        // if disabled, scaling can be done on x- and y-axis separately
+        chart.setPinchZoom(false);
+
+        chart.getAxisLeft().setDrawGridLines(false);
+        chart.getAxisRight().setEnabled(false);
+        chart.getXAxis().setDrawGridLines(true);
+        chart.getXAxis().setDrawAxisLine(false);
+
+
+
+        // don't forget to refresh the drawing
+        chart.invalidate();
 
     }
 
@@ -195,21 +228,61 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         double [] finddoubles = mKnockDetector.getFindeDoubles();
         float [] temArray = new float[finddoubles.length];
-        if(null != finddoubles && finddoubles.length >500){
+        if(null != finddoubles && finddoubles.length >100){
             //draw 曲线
-            for(int i=0;i<finddoubles.length;i++){
-                temArray[i] = (float)finddoubles[i];
-            }
-            DrawLineChart drawlinechart = findViewById(R.id.dl_lines);
-            drawlinechart.setMaxVlaue(9999);
-            drawlinechart.setMinValue(-9999);
-            drawlinechart.setNumberLine(1000);
-            drawlinechart.setValue(temArray);
-            drawlinechart.invalidate();
+            setData(finddoubles);
         }
 
     }
 
+    public void showFFTLines(View view) {
+
+        double [] findFFTdoubles = mKnockDetector.getFFTAbsDoubles();
+        float [] temArray = new float[findFFTdoubles.length];
+        if(null != findFFTdoubles && findFFTdoubles.length >100){
+            //draw 曲线
+            setData(findFFTdoubles);
+        }
+
+    }
+
+
+
+    private void setData( double [] finddoubles) {
+        chart.resetTracking();
+        ArrayList<Entry> values = new ArrayList<>();
+        boolean flag = false;
+        for (int i = 0; i < finddoubles.length; i++) {
+            float val = (float) (finddoubles[i]);
+            values.add(new Entry(i , val));
+        }
+
+        // create a dataset and give it a type
+        LineDataSet set1 = new LineDataSet(values, "DataSet 1");
+
+        set1.setColor(Color.BLACK);
+        set1.setLineWidth(0.5f);
+        set1.setDrawValues(false);
+        set1.setDrawCircles(false);
+        set1.setMode(LineDataSet.Mode.LINEAR);
+        set1.setDrawFilled(false);
+
+        // create a data object with the data sets
+        LineData data = new LineData(set1);
+
+        // set data
+        chart.setData(data);
+
+        // get the legend (only possible after setting data)
+        Legend l = chart.getLegend();
+        l.setEnabled(false);
+
+
+
+
+        // redraw
+        chart.invalidate();
+    }
 
 
 
