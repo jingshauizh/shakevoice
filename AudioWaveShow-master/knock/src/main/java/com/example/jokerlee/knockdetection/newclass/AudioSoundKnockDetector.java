@@ -66,13 +66,15 @@ public class AudioSoundKnockDetector {
     private byte[] findBuffer;
     private String fftResult = "";
     //buffer值不能太大，避免OOM
-    private static final int BUFFER_SIZE = 2048;
+    private static final int BUFFER_SIZE = 4096;
     private static final int FFT_CHECK_Times = 5;
     private boolean mIsPlaying = false;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private AudioManager mAudioManager = null;
     private Context mContext;
     private StringBuilder resultFFTBuilder;
+
+    private double[] finderDoubles;
 
     public AudioSoundKnockDetector(Context context) {
         mContext = context;
@@ -230,7 +232,7 @@ public class AudioSoundKnockDetector {
 
             //2byte  转成一个double
             double[] pcmAsDoubles = AudioUtil.doubleMeNew(findBuffer);
-
+            finderDoubles = pcmAsDoubles;
             Log.i("audio", "pcmAsDoubles=" + pcmAsDoubles.length);
 
 
@@ -242,8 +244,9 @@ public class AudioSoundKnockDetector {
             Complex[] fftfindComplex = NewFFT.fft(findComplex);
             Log.i("audio", "fftfindComplex=" + fftfindComplex.length);
 
+            fftResult = ayncDoubleDatas(pcmAsDoubles);
             // 对FFT结果进行分析
-            fftResult = ayncFFTComplexDatas(fftfindComplex, path);
+            fftResult += ayncFFTComplexDatas(fftfindComplex, path);
 
             StringBuilder fftstrBuid = new StringBuilder();
             fftstrBuid.append("FFT 1111111111111111=============\n");
@@ -290,7 +293,37 @@ public class AudioSoundKnockDetector {
         }
     }
 
+    private String ayncDoubleDatas(double[] doubleDatas) {
+        StringBuilder doubleBuid = new StringBuilder();
+        double valueSub256 = 0;
+        double valueSubAll = 0;
+        double valueSub1024 = 0;
+        for (int i = 0; i < 256; i++) {
+            double temp = Math.abs(doubleDatas[i])*Math.abs(doubleDatas[i]);
+            valueSub256 += temp;
+        }
 
+        for (int j = 0; j < doubleDatas.length; j++) {
+            double temp = Math.abs(doubleDatas[j])*Math.abs(doubleDatas[j]);
+            valueSubAll += temp;
+        }
+
+        for (int k = 1024; k < doubleDatas.length; k++) {
+            double temp = Math.abs(doubleDatas[k])*Math.abs(doubleDatas[k]);
+            valueSub1024 += temp;
+        }
+
+        doubleBuid.append("  aync  DoubleDatas  valueSub256=" + valueSub256 + "\n");
+        doubleBuid.append("  aync  DoubleDatas  valueSubAll=" + valueSubAll + "\n");
+        doubleBuid.append("  aync  DoubleDatas  valueSub1024=" + valueSub1024 + "\n");
+
+        double sub256toall = valueSub256/valueSubAll;
+        double sub256to1024 = valueSub256/valueSub1024;
+
+        doubleBuid.append("  aync  DoubleDatas  sub256toall=" + sub256toall + "\n");
+        doubleBuid.append("  aync  DoubleDatas  sub256to1024=" + sub256to1024 + "\n");
+        return doubleBuid.toString();
+    }
     /**
      * 对FFT结果进行分析
      *
@@ -302,19 +335,24 @@ public class AudioSoundKnockDetector {
         //记录分析数据 在页面展示
         StringBuilder fftstrBuid = new StringBuilder();
         //求 FFT 的平均值
-        double addsub = 0;
-        //找到所有结果的abs 总和求平均值
+        double maxvalue = 0;
+        double subValue = 0;
+        //找到所有结果的最大值
         for (int i = 0; i < fftfindComplex.length; i++) {
-            addsub += fftfindComplex[i].abs();//数据取了绝对值
+            double temp = fftfindComplex[i].abs();
+            subValue += temp;
+            if(temp > maxvalue){
+                maxvalue = temp;
+            }
         }
         fftstrBuid.append("FFT ayncFFT ComplexDatas  checked data=============\n");
-
-        //求平均值
-        double avg = addsub / fftfindComplex.length;
+        double avg = subValue/fftfindComplex.length;
         fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
 
-        //平均值 的 5倍 做一个检测标准
-        double checkValue = avg * FFT_CHECK_Times;
+        fftstrBuid.append("FFT ayncFFT ComplexDatas  maxvalue=" + maxvalue + "\n");
+
+        //最大值的一半 做一个检测标准
+        double checkValue = maxvalue/2;
         fftstrBuid.append("FFT ayncFFT ComplexDatas  checkValue=" + checkValue + "\n");
 
         //大于平均值 的 5倍 数据记录下来
@@ -359,6 +397,10 @@ public class AudioSoundKnockDetector {
 
     public String getFftResult() {
         return fftResult;
+    }
+
+    public double [] getFindeDoubles() {
+        return finderDoubles;
     }
 
 

@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
+import com.example.jokerlee.knockdetection.ui.DrawLineChart;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
 
 
@@ -189,6 +190,28 @@ public class MainAudioRecordActivity extends BaseActivity {
         tv_stream_msg.setText(fftResult);
 
     }
+
+    public void showLines(View view) {
+
+        double [] finddoubles = mKnockDetector.getFindeDoubles();
+        float [] temArray = new float[finddoubles.length];
+        if(null != finddoubles && finddoubles.length >500){
+            //draw 曲线
+            for(int i=0;i<finddoubles.length;i++){
+                temArray[i] = (float)finddoubles[i];
+            }
+            DrawLineChart drawlinechart = findViewById(R.id.dl_lines);
+            drawlinechart.setMaxVlaue(9999);
+            drawlinechart.setMinValue(-9999);
+            drawlinechart.setNumberLine(1000);
+            drawlinechart.setValue(temArray);
+            drawlinechart.invalidate();
+        }
+
+    }
+
+
+
 
 
     public void showResult(View view) {
