@@ -24,11 +24,10 @@
                 android:id="@+id/bt_stream_recorder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"
                 android:background="#50000000"
                 android:onClick="recorderaudio"
                 android:padding="10dp"
+                android:layout_margin="10dp"
                 android:text="开始录音"
                 android:textColor="#fff"
                 android:textSize="24sp" />
@@ -37,12 +36,11 @@
                 android:id="@+id/btn_play"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/bt_stream_recorder"
-                android:layout_centerHorizontal="true"
+                android:layout_toRightOf="@+id/bt_stream_recorder"
+                android:padding="10dp"
                 android:layout_margin="10dp"
                 android:background="#50000000"
                 android:onClick="player"
-                android:padding="10dp"
                 android:text="播   放 tr"
                 android:textColor="#fff"
                 android:textSize="24sp" />
@@ -57,6 +55,7 @@
                 android:onClick="showResult"
                 android:padding="10dp"
                 android:text="显示 计算结果"
+                android:visibility="gone"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 
@@ -83,20 +82,12 @@
                 android:onClick="show"
                 android:padding="10dp"
                 android:text="显示 FFT数据分析结果"
+                android:visibility="gone"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 
 
-            <TextView
-                android:id="@+id/tv_stream_msg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/btn_show"
-                android:layout_weight="7"
-                android:padding="10dp"
-                android:text=""
-                android:textSize="12sp"
-                android:visibility="visible" />
+
 
 
             <Button
@@ -109,6 +100,7 @@
                 android:onClick="showLines"
                 android:padding="10dp"
                 android:text="显示 Find 数据曲线"
+                android:visibility="gone"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 
@@ -121,17 +113,33 @@
                 android:background="#50000000"
                 android:onClick="showFFTLines"
                 android:padding="10dp"
+                android:visibility="gone"
                 android:text="显示 FFT ABS数据曲线"
                 android:textColor="#fff"
                 android:textSize="24sp" />
 
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/chart1"
-                android:layout_below="@+id/btn_show_fft_line"
+                android:layout_below="@+id/btn_play"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
+                android:layout_height="300dp"
                  />
-
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart2"
+                android:layout_below="@+id/chart1"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                />
+            <TextView
+                android:id="@+id/tv_stream_msg"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_below="@+id/chart2"
+                android:layout_weight="7"
+                android:padding="10dp"
+                android:text=""
+                android:textSize="12sp"
+                android:visibility="visible" />
 
         </RelativeLayout>
     </ScrollView>

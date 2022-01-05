@@ -18,8 +18,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jokerlee.knockdetection.base.BaseActivity;
+import com.example.jokerlee.knockdetection.kinterface.KnockListener;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
 import com.example.jokerlee.knockdetection.ui.DrawLineChart;
+import com.example.jokerlee.knockdetection.ui.MyMarkerView;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -61,6 +63,7 @@ public class MainAudioRecordActivity extends BaseActivity {
     private String audioFilePath = "";
 
     private LineChart chart;
+    private LineChart chart2;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +90,8 @@ public class MainAudioRecordActivity extends BaseActivity {
 
             }
         };
+
+        mKnockDetector.setKnockListener(knocklistener);
 //
     }
 
@@ -109,7 +114,12 @@ public class MainAudioRecordActivity extends BaseActivity {
         chart.setScaleEnabled(true);
 
         // if disabled, scaling can be done on x- and y-axis separately
-        chart.setPinchZoom(false);
+        chart.setPinchZoom(true);
+
+        MyMarkerView mv = new MyMarkerView(this, R.layout.custom_marker_view);
+        mv.setChartView(chart); // For bounds control
+        chart.setMarker(mv); // Set the marker to the chart
+
 
         chart.getAxisLeft().setDrawGridLines(false);
         chart.getAxisRight().setEnabled(false);
@@ -120,6 +130,37 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         // don't forget to refresh the drawing
         chart.invalidate();
+
+        chart2 = findViewById(R.id.chart2);
+        chart2.setDrawGridBackground(false);
+
+        // no description text
+        chart2.getDescription().setEnabled(false);
+
+        // enable touch gestures
+        chart2.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        chart2.setDragEnabled(true);
+        chart2.setScaleEnabled(true);
+
+
+
+        // if disabled, scaling can be done on x- and y-axis separately
+        chart2.setPinchZoom(true);
+        MyMarkerView mv2 = new MyMarkerView(this, R.layout.custom_marker_view);
+        mv2.setChartView(chart2); // For bounds control
+        chart2.setMarker(mv2); // Set the marker to the chart
+
+        chart2.getAxisLeft().setDrawGridLines(false);
+        chart2.getAxisRight().setEnabled(false);
+        chart2.getXAxis().setDrawGridLines(true);
+        chart2.getXAxis().setDrawAxisLine(false);
+
+
+
+        // don't forget to refresh the drawing
+        chart2.invalidate();
 
     }
 
@@ -143,6 +184,7 @@ public class MainAudioRecordActivity extends BaseActivity {
             //提交后台任务，执行录音逻辑
             mIsRecording = true;
             mKnockDetector.stopDetecting();
+            clearData();
 
         }
 
@@ -151,7 +193,12 @@ public class MainAudioRecordActivity extends BaseActivity {
     }
 
 
+    private void clearData() {
+        tv_stream_msg.setText("");
 
+        setData(null);
+        setData2(null);
+    }
 
 
 
@@ -252,9 +299,12 @@ public class MainAudioRecordActivity extends BaseActivity {
         chart.resetTracking();
         ArrayList<Entry> values = new ArrayList<>();
         boolean flag = false;
-        for (int i = 0; i < finddoubles.length; i++) {
-            float val = (float) (finddoubles[i]);
-            values.add(new Entry(i , val));
+        if(null != finddoubles){
+            for (int i = 0; i < finddoubles.length; i++) {
+                float val = (float) (finddoubles[i]);
+                values.add(new Entry(i , val));
+            }
+
         }
 
         // create a dataset and give it a type
@@ -262,7 +312,7 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         set1.setColor(Color.BLACK);
         set1.setLineWidth(0.5f);
-        set1.setDrawValues(false);
+        set1.setDrawValues(true);
         set1.setDrawCircles(false);
         set1.setMode(LineDataSet.Mode.LINEAR);
         set1.setDrawFilled(false);
@@ -283,6 +333,50 @@ public class MainAudioRecordActivity extends BaseActivity {
         // redraw
         chart.invalidate();
     }
+
+    private void setData2( double [] finddoubles) {
+        chart2.resetTracking();
+        ArrayList<Entry> values = new ArrayList<>();
+        boolean flag = false;
+//        for (int i = 0; i < finddoubles.length; i++) {
+//            float val = (float) (finddoubles[i]);
+//            values.add(new Entry(i , val));
+//        }
+        if(null != finddoubles){
+            for (int i = 0; i < finddoubles.length; i++) {
+                float val = (float) (finddoubles[i]);
+                values.add(new Entry(i , val));
+            }
+
+        }
+
+        // create a dataset and give it a type
+        LineDataSet set1 = new LineDataSet(values, "DataSet 1");
+
+        set1.setColor(Color.BLACK);
+        set1.setLineWidth(0.5f);
+        set1.setDrawValues(false);
+        set1.setDrawCircles(false);
+        set1.setMode(LineDataSet.Mode.LINEAR);
+        set1.setDrawFilled(false);
+
+        // create a data object with the data sets
+        LineData data = new LineData(set1);
+
+        // set data
+        chart2.setData(data);
+
+        // get the legend (only possible after setting data)
+        Legend l = chart2.getLegend();
+        l.setEnabled(false);
+
+
+
+
+        // redraw
+        chart2.invalidate();
+    }
+
 
 
 
@@ -507,4 +601,15 @@ public class MainAudioRecordActivity extends BaseActivity {
             mAudioRecord = null;
         }
     }
+
+    private KnockListener knocklistener = new KnockListener(){
+        @Override
+        public void onLoadFinish(String result, double[] finddoubles, double[] fftdoubles) {
+            Log.i("listener", "result="+result);
+            tv_stream_msg.setText(result);
+
+            setData(finddoubles);
+            setData2(fftdoubles);
+        }
+    };
 }

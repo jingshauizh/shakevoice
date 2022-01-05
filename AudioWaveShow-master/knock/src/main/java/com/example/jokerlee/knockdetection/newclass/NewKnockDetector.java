@@ -5,6 +5,8 @@ import android.hardware.SensorManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.example.jokerlee.knockdetection.kinterface.KnockListener;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,7 +38,7 @@ abstract public class NewKnockDetector {
 	public abstract void knockResult(String result);
 
 	private String filePath = "";
-
+	private KnockListener knockListener;
 	private enum EventGenState_t {
 		NoneSet,
 		VolumSet,
@@ -122,4 +124,12 @@ abstract public class NewKnockDetector {
 		return mSoundKnockDetector.getResultFFTBuilder();
 	}
 
+	public KnockListener getKnockListener() {
+		return knockListener;
+	}
+
+	public void setKnockListener(KnockListener knockListener) {
+		this.knockListener = knockListener;
+		mSoundKnockDetector.setKnockListener(knockListener);
+	}
 }

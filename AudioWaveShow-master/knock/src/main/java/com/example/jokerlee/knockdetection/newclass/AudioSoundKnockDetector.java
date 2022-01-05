@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.jokerlee.knockdetection.kinterface.KnockListener;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
 import com.example.jokerlee.knockdetection.utils.Complex;
 import com.example.jokerlee.knockdetection.utils.FFT;
@@ -76,6 +77,8 @@ public class AudioSoundKnockDetector {
 
     private double[] finderDoubles;
     private double[] finderFFTAbsDoubles;
+
+    private KnockListener knockListener;
 
     public AudioSoundKnockDetector(Context context) {
         mContext = context;
@@ -251,6 +254,9 @@ public class AudioSoundKnockDetector {
             // 对FFT结果进行分析
             fftResult += ayncFFTComplexDatas(fftfindComplex, path);
 
+            if(null != knockListener){
+                knockListener.onLoadFinish(fftResult,finderDoubles,finderFFTAbsDoubles );
+            }
             StringBuilder fftstrBuid = new StringBuilder();
             fftstrBuid.append("FFT 1111111111111111=============\n");
             for (int i = 0; i < fftfindComplex.length; i++) {
@@ -310,33 +316,33 @@ public class AudioSoundKnockDetector {
 
     private String ayncDoubleDatas(double[] doubleDatas) {
         StringBuilder doubleBuid = new StringBuilder();
-        double valueSub256 = 0;
-        double valueSubAll = 0;
-        double valueSub1024 = 0;
-        for (int i = 0; i < 256; i++) {
+        double valueSub128 = 0;
+        double valueSub1024All = 0;
+        double valueSub512 = 0;
+        for (int i = 0; i < 128; i++) {
             double temp = Math.abs(doubleDatas[i])*Math.abs(doubleDatas[i]);
-            valueSub256 += temp;
+            valueSub128 += temp;
         }
 
-        for (int j = 0; j < doubleDatas.length; j++) {
+        for (int j = 0; j < 1024; j++) {
             double temp = Math.abs(doubleDatas[j])*Math.abs(doubleDatas[j]);
-            valueSubAll += temp;
+            valueSub1024All += temp;
         }
 
-        for (int k = 1024; k < doubleDatas.length; k++) {
+        for (int k = 512; k < 1024; k++) {
             double temp = Math.abs(doubleDatas[k])*Math.abs(doubleDatas[k]);
-            valueSub1024 += temp;
+            valueSub512 += temp;
         }
 
-        doubleBuid.append("  aync  DoubleDatas  valueSub256=" + valueSub256 + "\n");
-        doubleBuid.append("  aync  DoubleDatas  valueSubAll=" + valueSubAll + "\n");
-        doubleBuid.append("  aync  DoubleDatas  valueSub1024=" + valueSub1024 + "\n");
+        doubleBuid.append("  aync  DoubleDatas  valueSub128=" + valueSub128 + "\n");
+        doubleBuid.append("  aync  DoubleDatas  valueSub1024All=" + valueSub1024All + "\n");
+        doubleBuid.append("  aync  DoubleDatas  valueSub512=" + valueSub512 + "\n");
 
-        double sub256toall = valueSub256/valueSubAll;
-        double sub256to1024 = valueSub256/valueSub1024;
+        double sub128to1024 = valueSub128/valueSub1024All;
+        double sub128to512 = valueSub128/valueSub512;
 
-        doubleBuid.append("  aync  DoubleDatas  sub256toall=" + sub256toall + "\n");
-        doubleBuid.append("  aync  DoubleDatas  sub256to1024=" + sub256to1024 + "\n");
+        doubleBuid.append("  aync  DoubleDatas  sub128to1024=" + sub128to1024 + "\n");
+        doubleBuid.append("  aync  DoubleDatas  sub128to512=" + sub128to512 + "\n");
         return doubleBuid.toString();
     }
     /**
@@ -545,5 +551,13 @@ public class AudioSoundKnockDetector {
             return mRecorder.getMaxAmplitude(); ///2700.0;
         else
             return 0;
+    }
+
+    public KnockListener getKnockListener() {
+        return knockListener;
+    }
+
+    public void setKnockListener(KnockListener knockListener) {
+        this.knockListener = knockListener;
     }
 }
