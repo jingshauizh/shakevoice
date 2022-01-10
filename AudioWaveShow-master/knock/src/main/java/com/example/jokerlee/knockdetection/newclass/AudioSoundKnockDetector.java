@@ -334,15 +334,18 @@ public class AudioSoundKnockDetector {
             valueSub512 += temp;
         }
 
-        doubleBuid.append("  aync  DoubleDatas  valueSub128=" + valueSub128 + "\n");
-        doubleBuid.append("  aync  DoubleDatas  valueSub1024All=" + valueSub1024All + "\n");
-        doubleBuid.append("  aync  DoubleDatas  valueSub512=" + valueSub512 + "\n");
+        doubleBuid.append("第一子帧能量=" + valueSub128 + "\n");
+        //doubleBuid.append("  aync  DoubleDatas  valueSub1024All=" + valueSub1024All + "\n");
+        doubleBuid.append("第四子帧能量=" + valueSub512 + "\n");
 
         double sub128to1024 = valueSub128/valueSub1024All;
         double sub128to512 = valueSub128/valueSub512;
 
-        doubleBuid.append("  aync  DoubleDatas  sub128to1024=" + sub128to1024 + "\n");
-        doubleBuid.append("  aync  DoubleDatas  sub128to512=" + sub128to512 + "\n");
+        //doubleBuid.append("  aync  DoubleDatas  sub128to1024=" + sub128to1024 + "\n");
+        doubleBuid.append("子帧能量比=" + sub128to512 + "\n");
+        doubleBuid.append("生瓜子帧能量比约等于15" +"\n");
+        doubleBuid.append("熟瓜子帧能量比约等于11" +"\n");
+
         return doubleBuid.toString();
     }
     /**
@@ -359,28 +362,34 @@ public class AudioSoundKnockDetector {
         double maxvalue = 0;
         double subValue = 0;
         //找到所有结果的最大值
+        int maxIndex = -1;
         for (int i = 0; i < fftfindComplex.length; i++) {
             double temp = fftfindComplex[i].abs();
             subValue += temp;
             if(temp > maxvalue){
                 maxvalue = temp;
+                maxIndex = i;
             }
         }
-        fftstrBuid.append("FFT ayncFFT ComplexDatas  checked data=============\n");
+        //fftstrBuid.append("FFT ayncFFT ComplexDatas  checked data=============\n");
         double avg = subValue/fftfindComplex.length;
-        fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
+        //fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
 
-        fftstrBuid.append("FFT ayncFFT ComplexDatas  maxvalue=" + maxvalue + "\n");
+        fftstrBuid.append("谐震基频能量=" + maxvalue + "\n");
+        fftstrBuid.append("谐震基频频率=" + maxIndex * 5 + "\n");
+        fftstrBuid.append("生瓜谐震基频频率约等于170Hz" + "\n");
+        fftstrBuid.append("熟瓜谐震基频频率约等于140Hz" + "\n");
+
 
         //最大值的一半 做一个检测标准
         double checkValue = maxvalue/2;
-        fftstrBuid.append("FFT ayncFFT ComplexDatas  checkValue=" + checkValue + "\n");
+        //fftstrBuid.append("FFT ayncFFT ComplexDatas  checkValue=" + checkValue + "\n");
 
         //大于平均值 的 5倍 数据记录下来
         for (int i = 0; i < fftfindComplex.length; i++) {
             double temp = fftfindComplex[i].abs();//数据取了绝对值
             if (temp > checkValue) {
-                fftstrBuid.append("index=" + i + "  abs=" + temp + "\n");
+                //fftstrBuid.append("index=" + i + "  abs=" + temp + "\n");
             }
         }
         Log.i("audio", "fftstrBuid=" + fftstrBuid.toString());

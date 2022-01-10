@@ -20,15 +20,14 @@ import android.widget.Toast;
 import com.example.jokerlee.knockdetection.base.BaseActivity;
 import com.example.jokerlee.knockdetection.kinterface.KnockListener;
 import com.example.jokerlee.knockdetection.newclass.NewKnockDetector;
-import com.example.jokerlee.knockdetection.ui.DrawLineChart;
 import com.example.jokerlee.knockdetection.ui.MyMarkerView;
+import com.example.jokerlee.knockdetection.ui.XGMyMarkerView;
 import com.example.jokerlee.knockdetection.utils.AudioUtil;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,7 +67,7 @@ public class MainAudioRecordActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_audio_record);
-        setTitle("字节流录音");
+        setTitle("挑西瓜");
         initView();
         mExecutorService = Executors.newSingleThreadExecutor();
         mBuffer = new byte[BUFFER_SIZE];
@@ -116,7 +115,7 @@ public class MainAudioRecordActivity extends BaseActivity {
         // if disabled, scaling can be done on x- and y-axis separately
         chart.setPinchZoom(true);
 
-        MyMarkerView mv = new MyMarkerView(this, R.layout.custom_marker_view);
+        XGMyMarkerView mv = new XGMyMarkerView(this, R.layout.custom_marker_view);
         mv.setChartView(chart); // For bounds control
         chart.setMarker(mv); // Set the marker to the chart
 
@@ -148,7 +147,7 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         // if disabled, scaling can be done on x- and y-axis separately
         chart2.setPinchZoom(true);
-        MyMarkerView mv2 = new MyMarkerView(this, R.layout.custom_marker_view);
+        XGMyMarkerView mv2 = new XGMyMarkerView(this, R.layout.custom_marker_view);
         mv2.setChartView(chart2); // For bounds control
         chart2.setMarker(mv2); // Set the marker to the chart
 
@@ -171,7 +170,7 @@ public class MainAudioRecordActivity extends BaseActivity {
     public void recorderaudio(View view) {
         if (mIsRecording) {
 
-            bt_stream_recorder.setText("停止录音");
+            bt_stream_recorder.setText("停止敲击");
             //在开始录音中如果这个值没有变false，则一直进行，当再次点击变false时，录音才停止
             mIsRecording = false;
             audioFilePath = MainAudioRecordActivity.this.getExternalFilesDir("")+"/audio";
@@ -180,7 +179,7 @@ public class MainAudioRecordActivity extends BaseActivity {
 
         } else {
 
-            bt_stream_recorder.setText("开始录音");
+            bt_stream_recorder.setText("开始敲击");
             //提交后台任务，执行录音逻辑
             mIsRecording = true;
             mKnockDetector.stopDetecting();
@@ -211,7 +210,7 @@ public class MainAudioRecordActivity extends BaseActivity {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                bt_stream_recorder.setText("开始录音");
+                bt_stream_recorder.setText("开始敲击");
                 tv_stream_msg.setText("录取失败，请重新录入");
 
                 mIsRecording = false;
