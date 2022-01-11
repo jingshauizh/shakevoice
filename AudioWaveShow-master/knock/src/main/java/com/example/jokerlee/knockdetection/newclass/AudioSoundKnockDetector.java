@@ -363,7 +363,7 @@ public class AudioSoundKnockDetector {
         double subValue = 0;
         //找到所有结果的最大值
         int maxIndex = -1;
-        for (int i = 0; i < fftfindComplex.length; i++) {
+        for (int i = 1; i < fftfindComplex.length; i++) {
             double temp = fftfindComplex[i].abs();
             subValue += temp;
             if(temp > maxvalue){
@@ -376,7 +376,8 @@ public class AudioSoundKnockDetector {
         //fftstrBuid.append("FFT ayncFFT ComplexDatas  avg=" + avg + "\n");
 
         fftstrBuid.append("谐震基频能量=" + maxvalue + "\n");
-        fftstrBuid.append("谐震基频频率=" + maxIndex * 5 + "\n");
+        fftstrBuid.append("谐震基频频率=" + maxIndex + " * 5 = " + maxIndex * 5 + "\n");
+        //fftstrBuid.append("谐震基频频率=" + maxIndex * 5 + "\n");
         fftstrBuid.append("生瓜谐震基频频率约等于170Hz" + "\n");
         fftstrBuid.append("熟瓜谐震基频频率约等于140Hz" + "\n");
 
